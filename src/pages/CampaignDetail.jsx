@@ -37,7 +37,7 @@ export default function CampaignDetail() {
     Promise.all([
       supabase.from('linkedin_ad_campaigns').select('*').eq('id', id).single(),
       supabase.from('linkedin_ad_analytics').select('*').eq('campaign_id', id).order('date_start', { ascending: true }),
-      supabase.from('linkedin_ad_demographics').select('*').eq('campaign_id', id),
+supabase.from('linkedin_ad_demographics').select('*').eq('campaign_id', id).limit(25000),
     ]).then(async ([{ data: camp }, { data: an }, { data: demo }]) => {
       setCampaign(camp)
       setAnalytics(an || [])
