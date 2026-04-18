@@ -7,6 +7,23 @@ const fmt = (n) => n ? Number(n).toLocaleString('nl-NL') : '—'
 const eur = (n) => n ? `€${Number(n).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'
 const pct = (a, b) => (a && b && b > 0) ? `${((a / b) * 100).toFixed(2)}%` : '—'
 
+const SENIORITY_MAP = {
+  '1': 'Unpaid', '2': 'Training', '3': 'Entry', '4': 'Senior',
+  '5': 'Manager', '6': 'Director', '7': 'VP', '8': 'CXO', '9': 'Partner', '10': 'Owner'
+}
+
+const COMPANY_SIZE_MAP = {
+  'A': '1', 'B': '2-10', 'C': '11-50', 'D': '51-200',
+  'E': '201-500', 'F': '501-1000', 'G': '1001-5000', 'H': '5001-10000', 'I': '10000+'
+}
+
+const resolveLabel = (pivotType, pivotValue) => {
+  const val = pivotValue.split(':').pop()
+  if (pivotType === 'MEMBER_SENIORITY') return SENIORITY_MAP[val] || val
+  if (pivotType === 'MEMBER_COMPANY_SIZE') return COMPANY_SIZE_MAP[val] || val
+  return val
+}
+
 export default function CampaignDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -163,7 +180,7 @@ export default function CampaignDetail() {
                     <Pie
                       data={demographics.MEMBER_SENIORITY
                         .sort((a,b) => b.impressions - a.impressions)
-                        .map(d => ({ name: d.pivot_value.split(':').pop(), value: d.impressions }))}
+                        .map(d => ({ name: resolveLabel('MEMBER_SENIORITY', d.pivot_value), value: d.impressions }))}
                       cx="50%" cy="50%" outerRadius={90}
                       dataKey="value" nameKey="name"
                       label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}
@@ -184,7 +201,7 @@ export default function CampaignDetail() {
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={demographics.MEMBER_COMPANY_SIZE
                     .sort((a,b) => b.impressions - a.impressions)
-                    .map(d => ({ name: d.pivot_value.split(':').pop(), impressies: d.impressions, clicks: d.clicks }))}>
+                    .map(d => ({ name: resolveLabel('MEMBER_COMPANY_SIZE', d.pivot_value), impressies: d.impressions, clicks: d.clicks }))}>
                     <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
@@ -203,7 +220,7 @@ export default function CampaignDetail() {
                     data={demographics.MEMBER_INDUSTRY
                       .sort((a,b) => b.impressions - a.impressions)
                       .slice(0, 15)
-                      .map(d => ({ name: d.pivot_value.split(':').pop(), impressies: d.impressions }))}>
+                      .map(d => ({ name: resolveLabel('MEMBER_INDUSTRY', d.pivot_value), impressies: d.impressions }))}>
                     <XAxis type="number" tick={{ fontSize: 11 }} />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={180} />
                     <Tooltip />
@@ -221,7 +238,7 @@ export default function CampaignDetail() {
                     data={demographics.MEMBER_JOB_TITLE
                       .sort((a,b) => b.impressions - a.impressions)
                       .slice(0, 20)
-                      .map(d => ({ name: d.pivot_value.split(':').pop(), impressies: d.impressions, clicks: d.clicks }))}>
+                      .map(d => ({ name: resolveLabel('MEMBER_JOB_TITLE', d.pivot_value), impressies: d.impressions, clicks: d.clicks }))}>
                     <XAxis type="number" tick={{ fontSize: 11 }} />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={220} />
                     <Tooltip />
@@ -240,7 +257,7 @@ export default function CampaignDetail() {
                     data={demographics.MEMBER_COMPANY
                       .sort((a,b) => b.impressions - a.impressions)
                       .slice(0, 20)
-                      .map(d => ({ name: d.pivot_value.split(':').pop(), impressies: d.impressions, clicks: d.clicks }))}>
+                      .map(d => ({ name: resolveLabel('MEMBER_COMPANY', d.pivot_value), impressies: d.impressions, clicks: d.clicks }))}>
                     <XAxis type="number" tick={{ fontSize: 11 }} />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={220} />
                     <Tooltip />
