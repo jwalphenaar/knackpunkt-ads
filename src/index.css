@@ -156,7 +156,8 @@ code {
 .section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
 
 .demo-section { margin-top: 40px; }
-.demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 20px; }
+.demo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 1200px) { .demo-grid { grid-template-columns: repeat(2, 1fr); } }
 .demo-card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; }
 .demo-card.wide { grid-column: span 1; }
 .demo-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: #374151; }
