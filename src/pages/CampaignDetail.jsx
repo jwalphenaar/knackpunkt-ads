@@ -96,23 +96,68 @@ supabase.from('linkedin_ad_demographics').select('*').eq('campaign_id', id).limi
       <button className="back-btn" onClick={() => navigate('/campaigns')}>← Terug</button>
 
       <div className="detail-header">
-        <div>
-          <div className="detail-account">{account?.name}</div>
-          <h1 className="detail-title">{campaign.name}</h1>
-          <div className="detail-meta">
-            <span className="badge" style={{ background: (STATUS_COLORS[campaign.status] || '#9ca3af') + '20', color: STATUS_COLORS[campaign.status] || '#9ca3af' }}>{campaign.status}</span>
-            {campaign.objective_type && <span className="meta-tag">{campaign.objective_type}</span>}
-            {campaign.format && <span className="meta-tag">{campaign.format}</span>}
-            {campaign.locale_language && <span className="meta-tag">{campaign.locale_language}-{campaign.locale_country}</span>}
-          </div>
-        </div>
-        <div className="detail-budget">
-          {campaign.daily_budget_amount && <div><span>Budget/dag</span><strong>{eur(campaign.daily_budget_amount)}</strong></div>}
-          {campaign.total_budget_amount && <div><span>Totaal budget</span><strong>{eur(campaign.total_budget_amount)}</strong></div>}
-          {campaign.run_schedule_start && <div><span>Start</span><strong>{new Date(campaign.run_schedule_start).toLocaleDateString('nl-NL')}</strong></div>}
-          {campaign.run_schedule_end && <div><span>Einde</span><strong>{new Date(campaign.run_schedule_end).toLocaleDateString('nl-NL')}</strong></div>}
-        </div>
-      </div>
+  <div>
+    <div className="detail-account">{account?.name}</div>
+    <h1 className="detail-title">{campaign.name}</h1>
+    <div className="detail-meta">
+      <span className="badge" style={{ background: (STATUS_COLORS[campaign.status] || '#9ca3af') + '20', color: STATUS_COLORS[campaign.status] || '#9ca3af' }}>{campaign.status}</span>
+      {campaign.objective_type && <span className="meta-tag">{campaign.objective_type}</span>}
+      {campaign.format && <span className="meta-tag">{campaign.format}</span>}
+      {campaign.type && <span className="meta-tag">{campaign.type}</span>}
+      {campaign.locale_language && <span className="meta-tag">{campaign.locale_language}-{campaign.locale_country}</span>}
+    </div>
+  </div>
+</div>
+
+<div className="info-grid">
+
+  <div className="info-card">
+    <h3>Budget & Bieding</h3>
+    <div className="info-rows">
+      {campaign.daily_budget_amount && <div><span>Budget/dag</span><strong>{eur(campaign.daily_budget_amount)} {campaign.daily_budget_currency}</strong></div>}
+      {campaign.total_budget_amount && <div><span>Totaal budget</span><strong>{eur(campaign.total_budget_amount)} {campaign.total_budget_currency}</strong></div>}
+      {campaign.bid_amount && <div><span>Bod</span><strong>{eur(campaign.bid_amount)} {campaign.bid_currency}</strong></div>}
+      {campaign.unit_cost_amount && <div><span>Kosten per eenheid</span><strong>{eur(campaign.unit_cost_amount)} {campaign.unit_cost_currency}</strong></div>}
+      {campaign.cost_type && <div><span>Kostentype</span><strong>{campaign.cost_type}</strong></div>}
+    </div>
+  </div>
+
+  <div className="info-card">
+    <h3>Planning</h3>
+    <div className="info-rows">
+      {campaign.run_schedule_start && <div><span>Start</span><strong>{new Date(campaign.run_schedule_start).toLocaleDateString('nl-NL')}</strong></div>}
+      {campaign.run_schedule_end && <div><span>Einde</span><strong>{new Date(campaign.run_schedule_end).toLocaleDateString('nl-NL')}</strong></div>}
+      {campaign.created_at && <div><span>Aangemaakt</span><strong>{new Date(campaign.created_at).toLocaleDateString('nl-NL')}</strong></div>}
+      {campaign.last_modified_at && <div><span>Laatste wijziging</span><strong>{new Date(campaign.last_modified_at).toLocaleDateString('nl-NL')}</strong></div>}
+    </div>
+  </div>
+
+  <div className="info-card">
+    <h3>Optimalisatie & Levering</h3>
+    <div className="info-rows">
+      {campaign.optimization_target_type && <div><span>Optimalisatie doel</span><strong>{campaign.optimization_target_type}</strong></div>}
+      {campaign.creative_selection && <div><span>Advertentie selectie</span><strong>{campaign.creative_selection}</strong></div>}
+      {campaign.frequency_cap && <div><span>Frequency cap</span><strong>{campaign.frequency_cap}x</strong></div>}
+      <div><span>Audience expansion</span><strong>{campaign.audience_expansion_enabled ? '✓ Aan' : '✗ Uit'}</strong></div>
+      <div><span>Off-platform levering</span><strong>{campaign.off_platform_delivery_enabled ? '✓ Aan' : '✗ Uit'}</strong></div>
+    </div>
+  </div>
+
+  <div className="info-card">
+    <h3>Targeting</h3>
+    <div className="info-rows">
+      {campaign.locale_language && <div><span>Taal</span><strong>{campaign.locale_language}-{campaign.locale_country}</strong></div>}
+      {campaign.associated_entity && <div><span>Gekoppelde entiteit</span><strong>{campaign.associated_entity.split(':').pop()}</strong></div>}
+      {campaign.campaign_group_id && <div><span>Campagnegroep ID</span><strong>{campaign.campaign_group_id}</strong></div>}
+      {campaign.targeting_criteria && (
+        <div><span>Targeting</span><strong style={{ fontSize: 11, color: '#6b7280' }}>
+          {Object.keys(campaign.targeting_criteria).length} criteria ingesteld
+        </strong></div>
+      )}
+    </div>
+  </div>
+
+</div>
 
       <div className="kpi-grid">
         <div className="kpi-card"><div className="kpi-label">Impressies</div><div className="kpi-value">{fmt(totals.impressions)}</div></div>
