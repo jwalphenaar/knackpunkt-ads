@@ -1,38 +1,65 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
+const STATUS_COLORS = {
+  ACTIVE: '#22c55e',
+  PAUSED: '#f59e0b',
+  COMPLETED: '#6b7280',
+  CANCELED: '#ef4444',
+  DRAFT: '#a855f7',
+  ARCHIVED: '#9ca3af',
+}
+
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
+  const [filter, setFilter] = useState('all')
 
-useEffect(() => {
-  Promise.all([
-    supabase
-      .from('linkedin_ad_campaigns')
-      .select('*', { count: 'exact' })
-      .order('last_modified_at', { ascending: false })
-      .limit(100),
-    supabase
-      .from('linkedin_ad_accounts')
-      .select('id, name')
-  ]).then(([{ data: camps, count }, { data: accs }]) => {
-    const accountMap = Object.fromEntries((accs || []).map(a => [a.id, a.name]))
-    setCampaigns((camps || []).map(c => ({ ...c, account_name: accountMap[c.account_id] || c.account_id })))
-    setTotal(count || 0)
-    setLoading(false)
-  })
-}, [])
+  useEffect(() => {
+    Promise.all([
+      supabase
+        .from('linkedin_ad_campaigns')
+        .select('*', { count: 'exact' })
+        .order('last_modified_at', { ascending: false })
+        .limit(500),
+      supabase
+        .from('linkedin_ad_accounts')
+        .select('id, name')
+    ]).then(([{ data: camps, count }, { data: accs }]) => {
+      const accountMap = Object.fromEntries((accs || []).map(a => [a.id, a.name]))
+      setCampaigns((camps || []).map(c => ({ ...c, account_name: accountMap[c.account_id] || c.account_id })))
+      setTotal(count || 0)
+      setLoading(false)
+    })
+  }, [])
+
+  const statuses = ['ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELED', 'DRAFT', 'ARCHIVED']
+  const counts = Object.fromEntries(statuses.map(s => [s, campaigns.filter(c => c.status === s).length]))
+  counts.all = campaigns.length
+
+  const filtered = filter === 'all' ? campaigns : campaigns.filter(c => c.status === filter)
 
   if (loading) return <div className="loading">Laden...</div>
 
   return (
     <div>
       <h1 className="page-title">Campagnes <span className="count">{total}</span></h1>
-      <p className="subtitle">Toont de 100 meest recent gewijzigde campagnes. Sync loopt nog op de achtergrond.</p>
 
-      <div className="table-wrapper">
-        <table className="data-table">
+      <div className="filter-bar">
+        <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
+          Alle <span>{counts.all}</span>
+        </button>
+        {statuses.filter(s => counts[s] > 0).map(s => (
+          <button key={s} className={`filter-btn ${filter === s ? 'active' : ''}`} onClick={() => setFilter(s)}
+            style={filter === s ? {} : { borderColor: STATUS_COLORS[s] + '40', color: STATUS_COLORS[s] }}>
+            {s.charAt(0) + s.slice(1).toLowerCase()} <span>{counts[s]}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="table-wrapper" style={{ overflowX: 'auto' }}>
+        <table className="data-table" style={{ minWidth: '900px' }}>
           <thead>
             <tr>
               <th>Account</th>
@@ -40,20 +67,28 @@ useEffect(() => {
               <th>Status</th>
               <th>Type</th>
               <th>Doel</th>
+              <th>Formaat</th>
               <th>Budget/dag</th>
+              <th>Totaal budget</th>
               <th>Valuta</th>
             </tr>
           </thead>
           <tbody>
-            {campaigns.map(c => (
+            {filtered.map(c => (
               <tr key={c.id}>
-                <td className="account-cell">{c.account_name}</td>
+                <td>{c.account_name}</td>
                 <td className="name-cell">{c.name}</td>
-                <td><span className="badge">{c.status}</span></td>
+                <td>
+                  <span className="badge" style={{ background: (STATUS_COLORS[c.status] || '#9ca3af') + '20', color: STATUS_COLORS[c.status] || '#9ca3af' }}>
+                    {c.status}
+                  </span>
+                </td>
                 <td>{c.type}</td>
                 <td>{c.objective_type}</td>
-                <td>{c.daily_budget_amount ? `${c.daily_budget_amount}` : '—'}</td>
-                <td>{c.daily_budget_currency}</td>
+                <td>{c.format || '—'}</td>
+                <td>{c.daily_budget_amount ? c.daily_budget_amount : '—'}</td>
+                <td>{c.total_budget_amount ? c.total_budget_amount : '—'}</td>
+                <td>{c.daily_budget_currency || c.total_budget_currency || '—'}</td>
               </tr>
             ))}
           </tbody>
