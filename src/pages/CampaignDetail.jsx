@@ -24,6 +24,9 @@ const COMPANY_SIZE_MAP = {
   'SIZE_10001_OR_MORE': '10001+',
 }
 
+const SIZE_ORDER = ['SIZE_1','SIZE_2_TO_10','SIZE_11_TO_50','SIZE_51_TO_200','SIZE_201_TO_500','SIZE_501_TO_1000','SIZE_1001_TO_5000','SIZE_5001_TO_10000','SIZE_10001_OR_MORE']
+
+
 const resolveLabel = (pivotType, pivotValue) => {
   const val = pivotValue.split(':').pop()
   if (pivotType === 'MEMBER_SENIORITY') return SENIORITY_MAP[val] || val
@@ -207,7 +210,7 @@ supabase.from('linkedin_ad_demographics').select('*').eq('campaign_id', id).limi
                 <h3>Bedrijfsgrootte</h3>
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={demographics.MEMBER_COMPANY_SIZE
-                    .sort((a,b) => b.impressions - a.impressions)
+                    .sort((a,b) => SIZE_ORDER.indexOf(a.pivot_value.split(':').pop()) - SIZE_ORDER.indexOf(b.pivot_value.split(':').pop()))
                     .map(d => ({ name: resolveLabel('MEMBER_COMPANY_SIZE', d.pivot_value), impressies: d.impressions, clicks: d.clicks }))}>
                     <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
