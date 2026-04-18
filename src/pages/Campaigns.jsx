@@ -134,6 +134,7 @@ export default function Campaigns() {
               <th onClick={() => handleSort('total_budget_amount')} style={{ cursor: 'pointer' }}>Totaal<SortIcon field="total_budget_amount" /></th>
               <th onClick={() => handleSort('last_modified_at')} style={{ cursor: 'pointer' }}>Gewijzigd<SortIcon field="last_modified_at" /></th>
               <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer' }}>Aangemaakt<SortIcon field="created_at" /></th>
+              <th>ID</th>
             </tr>
           </thead>
           <tbody>
@@ -152,6 +153,7 @@ export default function Campaigns() {
                 <td>{c.total_budget_amount ? `€${c.total_budget_amount}` : '—'}</td>
                 <td>{c.last_modified_at ? new Date(c.last_modified_at).toLocaleDateString('nl-NL') : '—'}</td>
                 <td>{c.created_at ? new Date(c.created_at).toLocaleDateString('nl-NL') : '—'}</td>
+                <td className="id-cell">{c.id}</td>
               </tr>
             ))}
           </tbody>
