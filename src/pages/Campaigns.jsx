@@ -6,18 +6,23 @@ export default function Campaigns() {
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
 
-  useEffect(() => {
+useEffect(() => {
+  Promise.all([
     supabase
       .from('linkedin_ad_campaigns')
       .select('*', { count: 'exact' })
       .order('last_modified_at', { ascending: false })
-      .limit(100)
-      .then(({ data, count }) => {
-        setCampaigns(data || [])
-        setTotal(count || 0)
-        setLoading(false)
-      })
-  }, [])
+      .limit(100),
+    supabase
+      .from('linkedin_ad_accounts')
+      .select('id, name')
+  ]).then(([{ data: camps, count }, { data: accs }]) => {
+    const accountMap = Object.fromEntries((accs || []).map(a => [a.id, a.name]))
+    setCampaigns((camps || []).map(c => ({ ...c, account_name: accountMap[c.account_id] || c.account_id })))
+    setTotal(count || 0)
+    setLoading(false)
+  })
+}, [])
 
   if (loading) return <div className="loading">Laden...</div>
 
@@ -30,6 +35,7 @@ export default function Campaigns() {
         <table className="data-table">
           <thead>
             <tr>
+              <th>Account</th>
               <th>Naam</th>
               <th>Status</th>
               <th>Type</th>
@@ -41,6 +47,7 @@ export default function Campaigns() {
           <tbody>
             {campaigns.map(c => (
               <tr key={c.id}>
+                <td className="account-cell">{c.account_name}</td>
                 <td className="name-cell">{c.name}</td>
                 <td><span className="badge">{c.status}</span></td>
                 <td>{c.type}</td>

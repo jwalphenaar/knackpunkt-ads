@@ -38,15 +38,15 @@ export default function Accounts() {
 
   return (
     <div>
-      <h1 className="page-title">Ad Accounts <span className="count">{accounts.length}</span></h1>
+<h1 className="page-title">Accounts <span className="count">{accounts.length}</span></h1>
 
-      <div className="filter-bar">
-        {[['all', 'Alle'], ['RUNNABLE', 'Actief'], ['BILLING_HOLD', 'Billing Hold'], ['STOPPED', 'Gestopt']].map(([key, label]) => (
-          <button key={key} className={`filter-btn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>
-            {label} <span>{counts[key]}</span>
-          </button>
-        ))}
-      </div>
+<div className="filter-bar">
+  {[['all', 'Alle'], ['RUNNABLE', 'Actief'], ['BILLING_HOLD', 'Billing Hold'], ['STOPPED', 'Gestopt']].map(([key, label]) => (
+    <button key={key} className={`filter-btn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>
+      {label} <span>{counts[key]}</span>
+    </button>
+  ))}
+</div>
 
       <div className="table-wrapper">
         <table className="data-table">
