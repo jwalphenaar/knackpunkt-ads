@@ -137,3 +137,20 @@ code {
 .dropdown-filters select:focus { outline: none; border-color: #0077b5; }
 .reset-btn { padding: 7px 12px; border-radius: 6px; border: 1px solid #fca5a5; background: #fef2f2; color: #ef4444; font-size: 13px; cursor: pointer; }
 .reset-btn:hover { background: #fee2e2; }
+
+.back-btn { background: none; border: 1px solid #e5e7eb; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+.back-btn:hover { background: #f9fafb; }
+.detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; gap: 20px; }
+.detail-account { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+.detail-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+.detail-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.meta-tag { background: #f3f4f6; color: #374151; padding: 3px 10px; border-radius: 4px; font-size: 12px; }
+.detail-budget { display: flex; gap: 20px; flex-wrap: wrap; background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; }
+.detail-budget div { display: flex; flex-direction: column; gap: 2px; }
+.detail-budget span { font-size: 11px; color: #9ca3af; text-transform: uppercase; }
+.detail-budget strong { font-size: 15px; font-weight: 600; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 32px; }
+.kpi-card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; }
+.kpi-label { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.kpi-value { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+.section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }

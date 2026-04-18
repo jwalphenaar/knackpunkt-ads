@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useNavigate } from 'react-router-dom'
 
 const STATUS_COLORS = {
   ACTIVE: '#22c55e',
@@ -24,6 +25,8 @@ export default function Campaigns() {
   // Sortering
   const [sortField, setSortField] = useState('last_modified_at')
   const [sortDir, setSortDir] = useState('desc')
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     Promise.all([
@@ -139,7 +142,7 @@ export default function Campaigns() {
           </thead>
           <tbody>
             {filtered.map(c => (
-              <tr key={c.id}>
+              <tr key={c.id} onClick={() => navigate(`/campaigns/${c.id}`)} style={{ cursor: 'pointer' }}>
                 <td>{c.account_name}</td>
                 <td className="name-cell">{c.name}</td>
                 <td>
