@@ -131,3 +131,9 @@ code {
 
 
 .name-cell { white-space: normal !important; }
+
+.dropdown-filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.dropdown-filters select { padding: 7px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: white; font-size: 13px; color: #374151; cursor: pointer; }
+.dropdown-filters select:focus { outline: none; border-color: #0077b5; }
+.reset-btn { padding: 7px 12px; border-radius: 6px; border: 1px solid #fca5a5; background: #fef2f2; color: #ef4444; font-size: 13px; cursor: pointer; }
+.reset-btn:hover { background: #fee2e2; }
