@@ -57,20 +57,21 @@ export default function Campaigns() {
           </button>
         ))}
       </div>
-
 <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-  <table className="data-table" style={{ width: '100%', tableLayout: 'fixed' }}>
-    <colgroup>
-      <col style={{ width: '150px' }} /> {/* Account */}
-      <col style={{ width: '250px' }} /> {/* Naam */}
-      <col style={{ width: '100px' }} /> {/* Status */}
-      <col style={{ width: '160px' }} /> {/* Type */}
-      <col style={{ width: '160px' }} /> {/* Doel */}
-      <col style={{ width: '140px' }} /> {/* Formaat */}
-      <col style={{ width: '100px' }} /> {/* Budget/dag */}
-      <col style={{ width: '110px' }} /> {/* Totaal budget */}
-      <col style={{ width: '80px' }} />  {/* Valuta */}
-    </colgroup>
+  <table className="data-table" style={{ width: '100%' }}>
+<thead>
+  <tr>
+    <th>Account</th>
+    <th>Naam</th>
+    <th>Status</th>
+    <th>Type</th>
+    <th>Doel</th>
+    <th>Formaat</th>
+    <th>Budget/dag</th>
+    <th>Totaal budget</th>
+    <th>Valuta</th>
+  </tr>
+</thead>
           <tbody>
             {filtered.map(c => (
               <tr key={c.id}>
