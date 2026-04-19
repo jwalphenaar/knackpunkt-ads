@@ -54,6 +54,7 @@ export default function CampaignDetail() {
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [resolvedLabels, setResolvedLabels] = useState({})
+  const [creatives, setCreatives] = useState([])
 
 const resolveGroup = async (type, endpoint, items) => {
   if (!items || items.length === 0) return
@@ -91,6 +92,11 @@ const resolveGroup = async (type, endpoint, items) => {
       }
 
       setLoading(false)
+
+      fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
+  .then(r => r.json())
+  .then(d => { setCreativesCount(d.count); setCreatives(d.creatives || []) })
+  .catch(() => {})
 
       // Resolve URN labels op de achtergrond
       resolveGroup('MEMBER_JOB_TITLE', 'titles', grouped.MEMBER_JOB_TITLE)
@@ -259,6 +265,54 @@ const resolveGroup = async (type, endpoint, items) => {
         <div className="kpi-card"><div className="kpi-label">Engagements</div><div className="kpi-value">{fmt(totals.engagements)}</div></div>
         <div className="kpi-card"><div className="kpi-label">Engagement rate</div><div className="kpi-value">{pct(totals.engagements, totals.impressions)}</div></div>
       </div>
+
+{creatives.length > 0 && (
+  <div style={{ marginBottom: 32 }}>
+    <h2 className="section-title">Creatives <span className="count">{creatives.length}</span></h2>
+    <div className="table-wrapper">
+      <table className="data-table" style={{ width: '100%' }}>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Review</th>
+            <th>Serving</th>
+            <th>Impressions</th>
+            <th>Clicks</th>
+            <th>CTR</th>
+            <th>Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          {creatives.map((c, i) => (
+            <tr key={i}>
+              <td className="id-cell">{c.id}</td>
+              <td>{c.contentType || '—'}</td>
+              <td>
+                <span className="badge" style={{
+                  background: c.status === 'ACTIVE' ? '#22c55e20' : '#9ca3af20',
+                  color: c.status === 'ACTIVE' ? '#22c55e' : '#9ca3af'
+                }}>{c.status || '—'}</span>
+              </td>
+              <td>
+                <span className="badge" style={{
+                  background: c.reviewStatus === 'APPROVED' ? '#22c55e20' : '#f59e0b20',
+                  color: c.reviewStatus === 'APPROVED' ? '#22c55e' : '#f59e0b'
+                }}>{c.reviewStatus || '—'}</span>
+              </td>
+              <td>{c.isServing ? '✓' : '✗'}</td>
+              <td>{fmt(c.impressions)}</td>
+              <td>{fmt(c.clicks)}</td>
+              <td>{pct(c.clicks, c.impressions)}</td>
+              <td>{eur(c.cost)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
 
       <h2 className="section-title">Daily data <span className="count">{filteredAnalytics.length} days</span></h2>
 
