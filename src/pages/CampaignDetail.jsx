@@ -22,6 +22,19 @@ const SIZE_ORDER = ['SIZE_1','SIZE_2_TO_10','SIZE_11_TO_50','SIZE_51_TO_200','SI
 
 const COLORS = ['#0077b5','#00a0dc','#f59e0b','#22c55e','#ef4444','#a855f7','#f97316','#06b6d4','#84cc16','#ec4899']
 
+
+const heatColor = (value, allValues) => {
+  if (!value || allValues.every(v => !v)) return {}
+  const max = Math.max(...allValues.filter(v => v))
+  const min = Math.min(...allValues.filter(v => v))
+  if (max === min) return {}
+  const ratio = (value - min) / (max - min)
+  const r = Math.round(255 - ratio * 180)
+  const g = Math.round(100 + ratio * 155)
+  const b = Math.round(100 - ratio * 60)
+  return { background: `rgba(${r},${g},${b},0.15)` }
+}
+
 const resolveLabel = (pivotType, pivotValue) => {
   const val = pivotValue.split(':').pop()
   if (pivotType === 'MEMBER_SENIORITY') return SENIORITY_MAP[val] || val
@@ -33,6 +46,8 @@ const STATUS_COLORS = {
   ACTIVE: '#22c55e', PAUSED: '#f59e0b', COMPLETED: '#6b7280',
   CANCELED: '#ef4444', DRAFT: '#a855f7', ARCHIVED: '#9ca3af',
 }
+
+
 
 export default function CampaignDetail() {
   const { id } = useParams()
@@ -191,23 +206,35 @@ export default function CampaignDetail() {
             </tr>
           </thead>
           <tbody>
-            {analytics.map((row, i) => (
-              <tr key={i}>
-                <td>{new Date(row.date_start).toLocaleDateString('en-GB')}</td>
-                <td>{fmt(row.impressions)}</td>
-                <td>{fmt(row.approximate_member_reach)}</td>
-                <td>{fmt(row.clicks)}</td>
-                <td>{pct(row.clicks, row.impressions)}</td>
-                <td>{eur(row.cost_in_local_currency)}</td>
-                <td>{row.impressions > 0 ? eur((row.cost_in_local_currency / row.impressions) * 1000) : '—'}</td>
-                <td>{row.clicks > 0 ? eur(row.cost_in_local_currency / row.clicks) : '—'}</td>
-                <td>{fmt(row.one_click_leads)}</td>
-                <td>{fmt(row.one_click_lead_form_opens)}</td>
-                <td>{fmt(row.external_website_conversions)}</td>
-                <td>{fmt(row.video_views)}</td>
-                <td>{fmt(row.likes)}</td>
-                <td>{fmt(row.follows)}</td>
-              </tr>
+            {(() => {
+  const allImpressions = analytics.map(r => r.impressions)
+  const allClicks = analytics.map(r => r.clicks)
+  const allCost = analytics.map(r => parseFloat(r.cost_in_local_currency || 0))
+  const allCtr = analytics.map(r => r.impressions > 0 ? r.clicks / r.impressions : 0)
+  const allCpm = analytics.map(r => r.impressions > 0 ? (r.cost_in_local_currency / r.impressions) * 1000 : 0)
+  const allCpc = analytics.map(r => r.clicks > 0 ? r.cost_in_local_currency / r.clicks : 0)
+  const allLeads = analytics.map(r => r.one_click_leads)
+  const allViews = analytics.map(r => r.video_views)
+
+  return analytics.map((row, i) => (
+    <tr key={i}>
+      <td>{new Date(row.date_start).toLocaleDateString('en-GB')}</td>
+      <td style={heatColor(row.impressions, allImpressions)}>{fmt(row.impressions)}</td>
+      <td>{fmt(row.approximate_member_reach)}</td>
+      <td style={heatColor(row.clicks, allClicks)}>{fmt(row.clicks)}</td>
+      <td style={heatColor(row.impressions > 0 ? row.clicks/row.impressions : 0, allCtr)}>{pct(row.clicks, row.impressions)}</td>
+      <td style={heatColor(parseFloat(row.cost_in_local_currency || 0), allCost)}>{eur(row.cost_in_local_currency)}</td>
+      <td>{row.impressions > 0 ? eur((row.cost_in_local_currency / row.impressions) * 1000) : '—'}</td>
+      <td>{row.clicks > 0 ? eur(row.cost_in_local_currency / row.clicks) : '—'}</td>
+      <td style={heatColor(row.one_click_leads, allLeads)}>{fmt(row.one_click_leads)}</td>
+      <td>{fmt(row.one_click_lead_form_opens)}</td>
+      <td>{fmt(row.external_website_conversions)}</td>
+      <td style={heatColor(row.video_views, allViews)}>{fmt(row.video_views)}</td>
+      <td>{fmt(row.likes)}</td>
+      <td>{fmt(row.follows)}</td>
+    </tr>
+  ))
+})()}
             ))}
           </tbody>
         </table>
