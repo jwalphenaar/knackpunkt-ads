@@ -55,15 +55,19 @@ export default function CampaignDetail() {
   const [customEnd, setCustomEnd] = useState('')
   const [resolvedLabels, setResolvedLabels] = useState({})
 
-  const resolveGroup = async (type, endpoint, items) => {
-    if (!items || items.length === 0) return
-    const ids = [...new Set(items.map(d => d.pivot_value.split(':').pop()))].slice(0, 50)
-    try {
-      const res = await fetch(`${API}/api/linkedin-ads/resolve/${endpoint}?ids=${ids.join(',')}`)
-      const map = await res.json()
-      setResolvedLabels(prev => ({ ...prev, [type]: { ...(prev[type] || {}), ...map } }))
-    } catch (e) {}
-  }
+const resolveGroup = async (type, endpoint, items) => {
+  if (!items || items.length === 0) return
+  // Sorteer op impressies en pak top 20 IDs
+  const top = [...items]
+    .sort((a, b) => b.impressions - a.impressions)
+    .slice(0, 20)
+  const ids = [...new Set(top.map(d => d.pivot_value.split(':').pop()))]
+  try {
+    const res = await fetch(`${API}/api/linkedin-ads/resolve/${endpoint}?ids=${ids.join(',')}`)
+    const map = await res.json()
+    setResolvedLabels(prev => ({ ...prev, [type]: { ...(prev[type] || {}), ...map } }))
+  } catch (e) {}
+}
 
   useEffect(() => {
     Promise.all([
