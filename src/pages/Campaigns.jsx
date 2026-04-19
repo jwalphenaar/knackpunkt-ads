@@ -37,7 +37,7 @@ useEffect(() => {
       .from('linkedin_ad_campaigns')
       .select('*', { count: 'exact' })
       .order('last_modified_at', { ascending: false })
-      .limit(1000),
+      .limit(5000),
     supabase
       .from('linkedin_ad_accounts')
       .select('id, name')
