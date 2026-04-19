@@ -402,26 +402,46 @@ const resolveGroup = async (type, endpoint, items) => {
   </div>
 )}
 
-            {demographics.MEMBER_COMPANY && (
-              <div className="demo-card">
-                <h3>Top 20 companies</h3>
-                <ResponsiveContainer width="100%" height={900}>
-                  <BarChart layout="vertical"
-                          barCategoryGap="30%"
-                    data={demographics.MEMBER_COMPANY
-                      .sort((a,b) => b.impressions - a.impressions)
-                      .slice(0, 20)
-                      .map(d => ({ name: resolveLabel('MEMBER_COMPANY', d.pivot_value), Impressions: d.impressions, Clicks: d.clicks }))}>
-                    <XAxis type="number" tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={220} />
-                    <Tooltip />
-                    <Bar dataKey="Impressions" fill="#0077b5" />
-                    <Bar dataKey="Clicks" fill="#f59e0b" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
+{demographics.MEMBER_COMPANY && (
+  <div className="demo-card">
+    <h3>Top 20 companies</h3>
+    <ResponsiveContainer width="100%" height={900}>
+      <BarChart layout="vertical"
+        margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+        barSize={12}
+        barCategoryGap="30%"
+        data={demographics.MEMBER_COMPANY
+          .sort((a,b) => b.impressions - a.impressions)
+          .slice(0, 20)
+          .map(d => ({
+            name: resolveLabel('MEMBER_COMPANY', d.pivot_value),
+            Impressions: d.impressions,
+            Clicks: d.clicks,
+            id: d.pivot_value.split(':').pop()
+          }))}>
+        <XAxis type="number" tick={{ fontSize: 11 }} />
+        <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={220} />
+        <Tooltip content={({ active, payload }) => {
+          if (!active || !payload?.length) return null
+          const { name, Impressions, Clicks, id } = payload[0].payload
+          return (
+            <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 6, padding: '10px 14px', fontSize: 13 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>{name}</div>
+              <div style={{ color: '#0077b5' }}>Impressions: {fmt(Impressions)}</div>
+              <div style={{ color: '#f59e0b' }}>Clicks: {fmt(Clicks)}</div>
+              <a href={`https://www.linkedin.com/company/${id}`} target="_blank" rel="noreferrer"
+                style={{ display: 'block', marginTop: 8, color: '#0077b5', fontSize: 12 }}>
+                View on LinkedIn →
+              </a>
+            </div>
+          )
+        }} />
+        <Bar dataKey="Impressions" fill="#0077b5" />
+        <Bar dataKey="Clicks" fill="#f59e0b" />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+)}
             {demographics.MEMBER_COUNTRY && (
               <div className="demo-card">
                 <h3>Top 20 countries</h3>
