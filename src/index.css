@@ -142,9 +142,6 @@ code {
 .back-btn:hover { background: #f9fafb; }
 .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; gap: 20px; }
 .detail-account { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
-.detail-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
-.detail-meta { display: flex; gap: 8px; flex-wrap: wrap; }
-.meta-tag { background: #f3f4f6; color: #374151; padding: 3px 10px; border-radius: 4px; font-size: 12px; }
 .detail-budget { display: flex; gap: 20px; flex-wrap: wrap; background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; }
 .detail-budget div { display: flex; flex-direction: column; gap: 2px; }
 .detail-budget span { font-size: 11px; color: #9ca3af; text-transform: uppercase; }
@@ -170,3 +167,14 @@ code {
 .info-rows div { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; }
 .info-rows span { color: #6b7280; white-space: nowrap; }
 .info-rows strong { text-align: right; color: #1a1a1a; }
+
+.detail-hero { background: linear-gradient(135deg, #0077b5 0%, #005885 100%); border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; color: white; }
+.detail-account-name { font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 6px; }
+.detail-title { font-size: 26px; font-weight: 700; color: white; margin-bottom: 12px; }
+.detail-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.meta-tag { background: rgba(255,255,255,0.2); color: white; padding: 3px 10px; border-radius: 4px; font-size: 12px; }
+
+.info-card-blue { background: linear-gradient(135deg, #0e4f7a 0%, #0077b5 100%) !important; color: white; border: none !important; }
+.info-card-blue h3 { color: rgba(255,255,255,0.7) !important; }
+.info-card-blue .info-rows span { color: rgba(255,255,255,0.6) !important; }
+.info-card-blue .info-rows strong { color: white !important; }
