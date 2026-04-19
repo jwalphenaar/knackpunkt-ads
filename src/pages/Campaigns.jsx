@@ -28,25 +28,32 @@ export default function Campaigns() {
 
   const navigate = useNavigate()
 
-  useEffect(() => {
-    Promise.all([
-      supabase
-        .from('linkedin_ad_campaigns')
-        .select('*', { count: 'exact' })
-        .limit(1000),
-      supabase
-        .from('linkedin_ad_accounts')
-        .select('id, name')
-    ]).then(([{ data: camps, count }, { data: accs }]) => {
-      const accountMap = Object.fromEntries((accs || []).map(a => [a.id, a.name]))
-      setCampaigns((camps || []).map(c => ({ ...c, account_name: accountMap[c.account_id] || c.account_id })))
-      setTotal(count || 0)
-      setLoading(false)
-    })
-  }, [])
+  const [accounts, setAccounts] = useState([])
+
+
+useEffect(() => {
+  Promise.all([
+    supabase
+      .from('linkedin_ad_campaigns')
+      .select('*', { count: 'exact' })
+      .order('last_modified_at', { ascending: false })
+      .limit(1000),
+    supabase
+      .from('linkedin_ad_accounts')
+      .select('id, name')
+      .neq('status', 'REMOVED')
+      .order('name')
+  ]).then(([{ data: camps, count }, { data: accs }]) => {
+    const accountMap = Object.fromEntries((accs || []).map(a => [a.id, a.name]))
+    setCampaigns((camps || []).map(c => ({ ...c, account_name: accountMap[c.account_id] || c.account_id })))
+    setTotal(count || 0)
+    setAccounts((accs || []).map(a => a.name).sort())
+    setLoading(false)
+  })
+}, [])
 
   // Unieke waarden voor dropdowns
-  const accounts = [...new Set(campaigns.map(c => c.account_name))].filter(Boolean).sort()
+
   const goals = [...new Set(campaigns.map(c => c.objective_type))].filter(Boolean).sort()
   const formats = [...new Set(campaigns.map(c => c.format))].filter(Boolean).sort()
   const statuses = [...new Set(campaigns.map(c => c.status))].filter(Boolean).sort()
@@ -102,10 +109,10 @@ export default function Campaigns() {
 
       {/* Dropdown filters */}
       <div className="dropdown-filters">
-        <select value={accountFilter} onChange={e => setAccountFilter(e.target.value)}>
-          <option value="all">Alle accounts</option>
-          {accounts.map(a => <option key={a} value={a}>{a}</option>)}
-        </select>
+<select value={accountFilter} onChange={e => setAccountFilter(e.target.value)}>
+  <option value="all">Alle accounts</option>
+  {accounts.map(a => <option key={a} value={a}>{a}</option>)}
+</select>
 
         <select value={goalFilter} onChange={e => setGoalFilter(e.target.value)}>
           <option value="all">Alle doelen</option>
