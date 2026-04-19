@@ -235,7 +235,7 @@ export default function CampaignDetail() {
     </tr>
   ))
 })()}
-            ))}
+
           </tbody>
         </table>
       </div>
