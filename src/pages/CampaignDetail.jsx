@@ -33,17 +33,12 @@ const heatColor = (value, allValues) => {
   return { background: `rgba(${r},${g},${b},0.15)` }
 }
 
-const resolveLabel = (pivotType, pivotValue) => {
-  const val = pivotValue.split(':').pop()
-  if (pivotType === 'MEMBER_SENIORITY') return SENIORITY_MAP[val] || val
-  if (pivotType === 'MEMBER_COMPANY_SIZE') return COMPANY_SIZE_MAP[val] || val
-  return val
-}
-
 const STATUS_COLORS = {
   ACTIVE: '#22c55e', PAUSED: '#f59e0b', COMPLETED: '#6b7280',
   CANCELED: '#ef4444', DRAFT: '#a855f7', ARCHIVED: '#9ca3af',
 }
+
+const API = import.meta.env.VITE_API_URL
 
 export default function CampaignDetail() {
   const { id } = useParams()
@@ -58,6 +53,17 @@ export default function CampaignDetail() {
   const [dateFilter, setDateFilter] = useState('all')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
+  const [resolvedLabels, setResolvedLabels] = useState({})
+
+  const resolveGroup = async (type, endpoint, items) => {
+    if (!items || items.length === 0) return
+    const ids = [...new Set(items.map(d => d.pivot_value.split(':').pop()))].slice(0, 50)
+    try {
+      const res = await fetch(`${API}/api/linkedin-ads/resolve/${endpoint}?ids=${ids.join(',')}`)
+      const map = await res.json()
+      setResolvedLabels(prev => ({ ...prev, [type]: { ...(prev[type] || {}), ...map } }))
+    } catch (e) {}
+  }
 
   useEffect(() => {
     Promise.all([
@@ -67,22 +73,40 @@ export default function CampaignDetail() {
     ]).then(async ([{ data: camp }, { data: an }, { data: demo }]) => {
       setCampaign(camp)
       setAnalytics(an || [])
+
       const grouped = {}
       for (const row of (demo || [])) {
         if (!grouped[row.pivot_type]) grouped[row.pivot_type] = []
         grouped[row.pivot_type].push(row)
       }
       setDemographics(grouped)
+
       if (camp?.account_id) {
         const { data: acc } = await supabase.from('linkedin_ad_accounts').select('name').eq('id', camp.account_id).single()
         setAccount(acc)
       }
+
       setLoading(false)
+
+      // Resolve URN labels op de achtergrond
+      resolveGroup('MEMBER_JOB_TITLE', 'titles', grouped.MEMBER_JOB_TITLE)
+      resolveGroup('MEMBER_INDUSTRY', 'industries', grouped.MEMBER_INDUSTRY)
+      resolveGroup('MEMBER_COMPANY', 'companies', grouped.MEMBER_COMPANY)
+      resolveGroup('MEMBER_COUNTRY', 'geo', grouped.MEMBER_COUNTRY)
+      resolveGroup('MEMBER_REGION', 'geo', grouped.MEMBER_REGION)
     })
   }, [id])
 
   if (loading) return <div className="loading">Loading...</div>
   if (!campaign) return <div className="loading">Campaign not found.</div>
+
+  const resolveLabel = (pivotType, pivotValue) => {
+    const val = pivotValue.split(':').pop()
+    if (pivotType === 'MEMBER_SENIORITY') return SENIORITY_MAP[val] || val
+    if (pivotType === 'MEMBER_COMPANY_SIZE') return COMPANY_SIZE_MAP[val] || val
+    if (resolvedLabels[pivotType]?.[val]) return resolvedLabels[pivotType][val]
+    return val
+  }
 
   const handleSort = (field) => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
