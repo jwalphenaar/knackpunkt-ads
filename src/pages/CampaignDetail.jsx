@@ -365,12 +365,12 @@ const resolveGroup = async (type, endpoint, items) => {
 
             {demographics.MEMBER_INDUSTRY && (
               <div className="demo-card">
-                <h3>Top 15 industries</h3>
-                <ResponsiveContainer width="100%" height={350}>
+                <h3>Top 20 industries</h3>
+                <ResponsiveContainer width="100%" height={900}>
                   <BarChart layout="vertical"
                     data={demographics.MEMBER_INDUSTRY
                       .sort((a,b) => b.impressions - a.impressions)
-                      .slice(0, 15)
+                      .slice(0, 20)
                       .map(d => ({ name: resolveLabel('MEMBER_INDUSTRY', d.pivot_value), Impressions: d.impressions }))}>
                     <XAxis type="number" tick={{ fontSize: 11 }} />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={180} />
@@ -384,10 +384,10 @@ const resolveGroup = async (type, endpoint, items) => {
 {demographics.MEMBER_JOB_TITLE && (
   <div className="demo-card">
     <h3>Top 20 job titles</h3>
-    <ResponsiveContainer width="100%" height={550}>
+    <ResponsiveContainer width="100%" height={900}>
       <BarChart layout="vertical"
         margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-        barCategoryGap="25%"
+        barCategoryGap="30%"
         data={demographics.MEMBER_JOB_TITLE
           .sort((a,b) => b.impressions - a.impressions)
           .slice(0, 20)
@@ -405,9 +405,9 @@ const resolveGroup = async (type, endpoint, items) => {
             {demographics.MEMBER_COMPANY && (
               <div className="demo-card">
                 <h3>Top 20 companies</h3>
-                <ResponsiveContainer width="100%" height={550}>
+                <ResponsiveContainer width="100%" height={900}>
                   <BarChart layout="vertical"
-                          barCategoryGap="25%"
+                          barCategoryGap="30%"
                     data={demographics.MEMBER_COMPANY
                       .sort((a,b) => b.impressions - a.impressions)
                       .slice(0, 20)
@@ -425,9 +425,9 @@ const resolveGroup = async (type, endpoint, items) => {
             {demographics.MEMBER_COUNTRY && (
               <div className="demo-card">
                 <h3>Top 20 countries</h3>
-                <ResponsiveContainer width="100%" height={550}>
+                <ResponsiveContainer width="100%" height={900}>
                   <BarChart layout="vertical"
-                          barCategoryGap="25%"
+                          barCategoryGap="30%"
                     data={demographics.MEMBER_COUNTRY
                       .sort((a,b) => b.impressions - a.impressions)
                       .slice(0, 20)
@@ -445,7 +445,7 @@ const resolveGroup = async (type, endpoint, items) => {
             {demographics.MEMBER_REGION && (
               <div className="demo-card">
                 <h3>Top 20 regions</h3>
-                <ResponsiveContainer width="100%" height={450}>
+                <ResponsiveContainer width="100%" height={900}>
                   <BarChart layout="vertical"
                     data={demographics.MEMBER_REGION
                       .sort((a,b) => b.impressions - a.impressions)
