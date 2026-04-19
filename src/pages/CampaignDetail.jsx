@@ -19,9 +19,7 @@ const COMPANY_SIZE_MAP = {
 }
 
 const SIZE_ORDER = ['SIZE_1','SIZE_2_TO_10','SIZE_11_TO_50','SIZE_51_TO_200','SIZE_201_TO_500','SIZE_501_TO_1000','SIZE_1001_TO_5000','SIZE_5001_TO_10000','SIZE_10001_OR_MORE']
-
 const COLORS = ['#0077b5','#00a0dc','#f59e0b','#22c55e','#ef4444','#a855f7','#f97316','#06b6d4','#84cc16','#ec4899']
-
 
 const heatColor = (value, allValues) => {
   if (!value || allValues.every(v => !v)) return {}
@@ -47,8 +45,6 @@ const STATUS_COLORS = {
   CANCELED: '#ef4444', DRAFT: '#a855f7', ARCHIVED: '#9ca3af',
 }
 
-
-
 export default function CampaignDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -57,6 +53,11 @@ export default function CampaignDetail() {
   const [analytics, setAnalytics] = useState([])
   const [demographics, setDemographics] = useState({})
   const [loading, setLoading] = useState(true)
+  const [sortField, setSortField] = useState('date_start')
+  const [sortDir, setSortDir] = useState('desc')
+  const [dateFilter, setDateFilter] = useState('all')
+  const [customStart, setCustomStart] = useState('')
+  const [customEnd, setCustomEnd] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -83,7 +84,58 @@ export default function CampaignDetail() {
   if (loading) return <div className="loading">Loading...</div>
   if (!campaign) return <div className="loading">Campaign not found.</div>
 
-  const totals = analytics.reduce((acc, row) => {
+  const handleSort = (field) => {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortField(field); setSortDir('desc') }
+  }
+
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) return <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}> ↕</span>
+    return <span style={{ fontSize: 10 }}>{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>
+  }
+
+  const getDateRange = () => {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    if (dateFilter === 'today') return [today, today]
+    if (dateFilter === 'yesterday') {
+      const y = new Date(today); y.setDate(y.getDate() - 1)
+      return [y, y]
+    }
+    if (dateFilter === 'month') return [new Date(now.getFullYear(), now.getMonth(), 1), today]
+    if (dateFilter === 'quarter') {
+      const q = Math.floor(now.getMonth() / 3)
+      return [new Date(now.getFullYear(), q * 3, 1), today]
+    }
+    return [null, null]
+  }
+
+  const filteredAnalytics = analytics.filter(row => {
+    if (dateFilter === 'all') return true
+    if (dateFilter === 'custom') {
+      if (!customStart || !customEnd) return true
+      const d = new Date(row.date_start)
+      return d >= new Date(customStart) && d <= new Date(customEnd)
+    }
+    const [start, end] = getDateRange()
+    if (!start) return true
+    const d = new Date(row.date_start)
+    return d >= start && d <= end
+  }).sort((a, b) => {
+    let aVal = a[sortField]
+    let bVal = b[sortField]
+    if (sortField === 'ctr') {
+      aVal = a.impressions > 0 ? a.clicks / a.impressions : 0
+      bVal = b.impressions > 0 ? b.clicks / b.impressions : 0
+    }
+    if (!aVal && aVal !== 0) return 1
+    if (!bVal && bVal !== 0) return -1
+    if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
+    if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
+    return 0
+  })
+
+  const totals = filteredAnalytics.reduce((acc, row) => {
     acc.impressions += row.impressions || 0
     acc.clicks += row.clicks || 0
     acc.cost += parseFloat(row.cost_in_local_currency || 0)
@@ -103,7 +155,6 @@ export default function CampaignDetail() {
     <div>
       <button className="back-btn" onClick={() => navigate('/campaigns')}>← Back</button>
 
-      {/* Header */}
       <div className="detail-hero">
         <div className="detail-hero-left">
           <div className="detail-account-name">{account?.name}</div>
@@ -118,7 +169,6 @@ export default function CampaignDetail() {
         </div>
       </div>
 
-      {/* Info cards */}
       <div className="info-grid">
         <div className="info-card info-card-blue">
           <h3>Budget & Bidding</h3>
@@ -163,7 +213,6 @@ export default function CampaignDetail() {
         </div>
       </div>
 
-      {/* KPIs */}
       <div className="kpi-grid">
         <div className="kpi-card"><div className="kpi-label">Impressions</div><div className="kpi-value">{fmt(totals.impressions)}</div></div>
         <div className="kpi-card"><div className="kpi-label">Reach</div><div className="kpi-value">{fmt(totals.reach)}</div></div>
@@ -183,64 +232,64 @@ export default function CampaignDetail() {
         <div className="kpi-card"><div className="kpi-label">Engagement rate</div><div className="kpi-value">{pct(totals.engagements, totals.impressions)}</div></div>
       </div>
 
-      {/* Daily data */}
-      <h2 className="section-title">Daily data <span className="count">{analytics.length} days</span></h2>
+      <h2 className="section-title">Daily data <span className="count">{filteredAnalytics.length} days</span></h2>
+
+      <div className="date-filters">
+        {[['all','All time'],['today','Today'],['yesterday','Yesterday'],['month','This month'],['quarter','This quarter'],['custom','Custom']].map(([key, label]) => (
+          <button key={key} className={`filter-btn ${dateFilter === key ? 'active' : ''}`} onClick={() => setDateFilter(key)}>{label}</button>
+        ))}
+        {dateFilter === 'custom' && (
+          <div className="custom-dates">
+            <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} />
+            <span>→</span>
+            <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} />
+          </div>
+        )}
+      </div>
+
       <div className="table-wrapper" style={{ overflowX: 'auto' }}>
         <table className="data-table" style={{ width: '100%' }}>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Impressions</th>
-              <th>Reach</th>
-              <th>Clicks</th>
-              <th>CTR</th>
-              <th>Cost</th>
-              <th>CPM</th>
-              <th>CPC</th>
-              <th>Leads</th>
-              <th>Form opens</th>
-              <th>Conversions</th>
-              <th>Video views</th>
-              <th>Likes</th>
-              <th>Follows</th>
+              {[['date_start','Date'],['impressions','Impressions'],['approximate_member_reach','Reach'],['clicks','Clicks'],['ctr','CTR'],['cost_in_local_currency','Cost'],['','CPM'],['','CPC'],['one_click_leads','Leads'],['one_click_lead_form_opens','Form opens'],['external_website_conversions','Conversions'],['video_views','Video views'],['likes','Likes'],['follows','Follows']].map(([field, label]) => (
+                <th key={label} onClick={() => field && handleSort(field)} style={{ cursor: field ? 'pointer' : 'default' }}>
+                  {label}{field && <SortIcon field={field} />}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {(() => {
-  const allImpressions = analytics.map(r => r.impressions)
-  const allClicks = analytics.map(r => r.clicks)
-  const allCost = analytics.map(r => parseFloat(r.cost_in_local_currency || 0))
-  const allCtr = analytics.map(r => r.impressions > 0 ? r.clicks / r.impressions : 0)
-  const allCpm = analytics.map(r => r.impressions > 0 ? (r.cost_in_local_currency / r.impressions) * 1000 : 0)
-  const allCpc = analytics.map(r => r.clicks > 0 ? r.cost_in_local_currency / r.clicks : 0)
-  const allLeads = analytics.map(r => r.one_click_leads)
-  const allViews = analytics.map(r => r.video_views)
+              const allImpressions = filteredAnalytics.map(r => r.impressions)
+              const allClicks = filteredAnalytics.map(r => r.clicks)
+              const allCost = filteredAnalytics.map(r => parseFloat(r.cost_in_local_currency || 0))
+              const allCtr = filteredAnalytics.map(r => r.impressions > 0 ? r.clicks / r.impressions : 0)
+              const allLeads = filteredAnalytics.map(r => r.one_click_leads)
+              const allViews = filteredAnalytics.map(r => r.video_views)
 
-  return analytics.map((row, i) => (
-    <tr key={i}>
-      <td>{new Date(row.date_start).toLocaleDateString('en-GB')}</td>
-      <td style={heatColor(row.impressions, allImpressions)}>{fmt(row.impressions)}</td>
-      <td>{fmt(row.approximate_member_reach)}</td>
-      <td style={heatColor(row.clicks, allClicks)}>{fmt(row.clicks)}</td>
-      <td style={heatColor(row.impressions > 0 ? row.clicks/row.impressions : 0, allCtr)}>{pct(row.clicks, row.impressions)}</td>
-      <td style={heatColor(parseFloat(row.cost_in_local_currency || 0), allCost)}>{eur(row.cost_in_local_currency)}</td>
-      <td>{row.impressions > 0 ? eur((row.cost_in_local_currency / row.impressions) * 1000) : '—'}</td>
-      <td>{row.clicks > 0 ? eur(row.cost_in_local_currency / row.clicks) : '—'}</td>
-      <td style={heatColor(row.one_click_leads, allLeads)}>{fmt(row.one_click_leads)}</td>
-      <td>{fmt(row.one_click_lead_form_opens)}</td>
-      <td>{fmt(row.external_website_conversions)}</td>
-      <td style={heatColor(row.video_views, allViews)}>{fmt(row.video_views)}</td>
-      <td>{fmt(row.likes)}</td>
-      <td>{fmt(row.follows)}</td>
-    </tr>
-  ))
-})()}
-
+              return filteredAnalytics.map((row, i) => (
+                <tr key={i}>
+                  <td>{new Date(row.date_start).toLocaleDateString('en-GB')}</td>
+                  <td style={heatColor(row.impressions, allImpressions)}>{fmt(row.impressions)}</td>
+                  <td>{fmt(row.approximate_member_reach)}</td>
+                  <td style={heatColor(row.clicks, allClicks)}>{fmt(row.clicks)}</td>
+                  <td style={heatColor(row.impressions > 0 ? row.clicks/row.impressions : 0, allCtr)}>{pct(row.clicks, row.impressions)}</td>
+                  <td style={heatColor(parseFloat(row.cost_in_local_currency || 0), allCost)}>{eur(row.cost_in_local_currency)}</td>
+                  <td>{row.impressions > 0 ? eur((row.cost_in_local_currency / row.impressions) * 1000) : '—'}</td>
+                  <td>{row.clicks > 0 ? eur(row.cost_in_local_currency / row.clicks) : '—'}</td>
+                  <td style={heatColor(row.one_click_leads, allLeads)}>{fmt(row.one_click_leads)}</td>
+                  <td>{fmt(row.one_click_lead_form_opens)}</td>
+                  <td>{fmt(row.external_website_conversions)}</td>
+                  <td style={heatColor(row.video_views, allViews)}>{fmt(row.video_views)}</td>
+                  <td>{fmt(row.likes)}</td>
+                  <td>{fmt(row.follows)}</td>
+                </tr>
+              ))
+            })()}
           </tbody>
         </table>
       </div>
 
-      {/* Demographics */}
       {Object.keys(demographics).length > 0 && (
         <div className="demo-section">
           <h2 className="section-title">Audience insights</h2>
