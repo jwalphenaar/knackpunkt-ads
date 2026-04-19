@@ -318,172 +318,152 @@ const resolveGroup = async (type, endpoint, items) => {
         </table>
       </div>
 
-      {Object.keys(demographics).length > 0 && (
-        <div className="demo-section">
-          <h2 className="section-title">Audience insights</h2>
-          <div className="demo-grid">
+{Object.keys(demographics).length > 0 && (
+  <div className="demo-section">
+    <h2 className="section-title">Audience insights</h2>
+    <div className="demo-grid">
 
-            {demographics.MEMBER_SENIORITY && (
-              <div className="demo-card">
-                <h3>Seniority level</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={demographics.MEMBER_SENIORITY
-                        .sort((a,b) => b.impressions - a.impressions)
-                        .map(d => ({ name: resolveLabel('MEMBER_SENIORITY', d.pivot_value), value: d.impressions }))}
-                      cx="50%" cy="50%" outerRadius={90}
-                      dataKey="value" nameKey="name"
-                      label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}
-                    >
-                      {demographics.MEMBER_SENIORITY.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v) => fmt(v)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            {demographics.MEMBER_COMPANY_SIZE && (
-              <div className="demo-card">
-                <h3>Company size</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={demographics.MEMBER_COMPANY_SIZE
-                    .sort((a,b) => SIZE_ORDER.indexOf(a.pivot_value.split(':').pop()) - SIZE_ORDER.indexOf(b.pivot_value.split(':').pop()))
-                    .map(d => ({ name: resolveLabel('MEMBER_COMPANY_SIZE', d.pivot_value), Impressions: d.impressions, Clicks: d.clicks }))}>
-                    <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Bar dataKey="Impressions" fill="#0077b5" />
-                    <Bar dataKey="Clicks" fill="#f59e0b" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            {demographics.MEMBER_INDUSTRY && (
-              <div className="demo-card">
-                <h3>Top 20 industries</h3>
-                <ResponsiveContainer width="100%" height={900}>
-                  <BarChart layout="vertical"
-                    data={demographics.MEMBER_INDUSTRY
-                      .sort((a,b) => b.impressions - a.impressions)
-                      .slice(0, 20)
-                      .map(d => ({ name: resolveLabel('MEMBER_INDUSTRY', d.pivot_value), Impressions: d.impressions }))}>
-                    <XAxis type="number" tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={180} />
-                    <Tooltip />
-                    <Bar dataKey="Impressions" fill="#0077b5" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-{demographics.MEMBER_JOB_TITLE && (
-  <div className="demo-card">
-    <h3>Top 20 job titles</h3>
-    <ResponsiveContainer width="100%" height={900}>
-      <BarChart layout="vertical"
-        margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-        barCategoryGap="30%"
-        data={demographics.MEMBER_JOB_TITLE
-          .sort((a,b) => b.impressions - a.impressions)
-          .slice(0, 20)
-          .map(d => ({ name: resolveLabel('MEMBER_JOB_TITLE', d.pivot_value), Impressions: d.impressions, Clicks: d.clicks }))}>
-        <XAxis type="number" tick={{ fontSize: 11 }} />
-        <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={200} />
-        <Tooltip />
-        <Bar dataKey="Impressions" fill="#0077b5" />
-        <Bar dataKey="Clicks" fill="#f59e0b" />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-)}
-
-{demographics.MEMBER_COMPANY && (
-  <div className="demo-card">
-    <h3>Top 20 companies</h3>
-    <ResponsiveContainer width="100%" height={900}>
-      <BarChart layout="vertical"
-        margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-        barSize={12}
-        barCategoryGap="30%"
-        data={demographics.MEMBER_COMPANY
-          .sort((a,b) => b.impressions - a.impressions)
-          .slice(0, 20)
-          .map(d => ({
-            name: resolveLabel('MEMBER_COMPANY', d.pivot_value),
-            Impressions: d.impressions,
-            Clicks: d.clicks,
-            id: d.pivot_value.split(':').pop()
-          }))}>
-        <XAxis type="number" tick={{ fontSize: 11 }} />
-        <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={220} />
-        <Tooltip content={({ active, payload }) => {
-          if (!active || !payload?.length) return null
-          const { name, Impressions, Clicks, id } = payload[0].payload
-          return (
-            <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 6, padding: '10px 14px', fontSize: 13 }}>
-              <div style={{ fontWeight: 600, marginBottom: 6 }}>{name}</div>
-              <div style={{ color: '#0077b5' }}>Impressions: {fmt(Impressions)}</div>
-              <div style={{ color: '#f59e0b' }}>Clicks: {fmt(Clicks)}</div>
-              <a href={`https://www.linkedin.com/company/${id}`} target="_blank" rel="noreferrer"
-                style={{ display: 'block', marginTop: 8, color: '#0077b5', fontSize: 12 }}>
-                View on LinkedIn →
-              </a>
-            </div>
-          )
-        }} />
-        <Bar dataKey="Impressions" fill="#0077b5" />
-        <Bar dataKey="Clicks" fill="#f59e0b" />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-)}
-            {demographics.MEMBER_COUNTRY && (
-              <div className="demo-card">
-                <h3>Top 20 countries</h3>
-                <ResponsiveContainer width="100%" height={900}>
-                  <BarChart layout="vertical"
-                          barCategoryGap="30%"
-                    data={demographics.MEMBER_COUNTRY
-                      .sort((a,b) => b.impressions - a.impressions)
-                      .slice(0, 20)
-                      .map(d => ({ name: resolveLabel('MEMBER_COUNTRY', d.pivot_value), Impressions: d.impressions, Clicks: d.clicks }))}>
-                    <XAxis type="number" tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={220} />
-                    <Tooltip />
-                    <Bar dataKey="Impressions" fill="#0077b5" />
-                    <Bar dataKey="Clicks" fill="#f59e0b" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            {demographics.MEMBER_REGION && (
-              <div className="demo-card">
-                <h3>Top 20 regions</h3>
-                <ResponsiveContainer width="100%" height={900}>
-                  <BarChart layout="vertical"
-                    data={demographics.MEMBER_REGION
-                      .sort((a,b) => b.impressions - a.impressions)
-                      .slice(0, 20)
-                      .map(d => ({ name: resolveLabel('MEMBER_REGION', d.pivot_value), Impressions: d.impressions, Clicks: d.clicks }))}>
-                    <XAxis type="number" tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={220} />
-                    <Tooltip />
-                    <Bar dataKey="Impressions" fill="#0077b5" />
-                    <Bar dataKey="Clicks" fill="#f59e0b" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-          </div>
+      {demographics.MEMBER_SENIORITY && (
+        <div className="demo-card">
+          <h3>Seniority level</h3>
+          <table className="demo-table">
+            <tbody>
+              {demographics.MEMBER_SENIORITY
+                .sort((a,b) => b.impressions - a.impressions)
+                .map((d, i) => (
+                  <tr key={i}>
+                    <td>{resolveLabel('MEMBER_SENIORITY', d.pivot_value)}</td>
+                    <td className="demo-val">{fmt(d.impressions)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </div>
       )}
+
+      {demographics.MEMBER_COMPANY_SIZE && (
+        <div className="demo-card">
+          <h3>Company size</h3>
+          <table className="demo-table">
+            <tbody>
+              {demographics.MEMBER_COMPANY_SIZE
+                .sort((a,b) => SIZE_ORDER.indexOf(a.pivot_value.split(':').pop()) - SIZE_ORDER.indexOf(b.pivot_value.split(':').pop()))
+                .map((d, i) => (
+                  <tr key={i}>
+                    <td>{resolveLabel('MEMBER_COMPANY_SIZE', d.pivot_value)}</td>
+                    <td className="demo-val">{fmt(d.impressions)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {demographics.MEMBER_INDUSTRY && (
+        <div className="demo-card">
+          <h3>Top 20 industries</h3>
+          <table className="demo-table">
+            <tbody>
+              {demographics.MEMBER_INDUSTRY
+                .sort((a,b) => b.impressions - a.impressions)
+                .slice(0, 20)
+                .map((d, i) => (
+                  <tr key={i}>
+                    <td>{resolveLabel('MEMBER_INDUSTRY', d.pivot_value)}</td>
+                    <td className="demo-val">{fmt(d.impressions)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {demographics.MEMBER_JOB_TITLE && (
+        <div className="demo-card">
+          <h3>Top 20 job titles</h3>
+          <table className="demo-table">
+            <tbody>
+              {demographics.MEMBER_JOB_TITLE
+                .sort((a,b) => b.impressions - a.impressions)
+                .slice(0, 20)
+                .map((d, i) => (
+                  <tr key={i}>
+                    <td>{resolveLabel('MEMBER_JOB_TITLE', d.pivot_value)}</td>
+                    <td className="demo-val">{fmt(d.impressions)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {demographics.MEMBER_COMPANY && (
+        <div className="demo-card">
+          <h3>Top 20 companies</h3>
+          <table className="demo-table">
+            <tbody>
+              {demographics.MEMBER_COMPANY
+                .sort((a,b) => b.impressions - a.impressions)
+                .slice(0, 20)
+                .map((d, i) => {
+                  const cid = d.pivot_value.split(':').pop()
+                  return (
+                    <tr key={i}>
+                      <td>
+                        <a href={`https://www.linkedin.com/company/${cid}`} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+                          {resolveLabel('MEMBER_COMPANY', d.pivot_value)}
+                        </a>
+                      </td>
+                      <td className="demo-val">{fmt(d.impressions)}</td>
+                    </tr>
+                  )
+                })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {demographics.MEMBER_COUNTRY && (
+        <div className="demo-card">
+          <h3>Top 20 countries</h3>
+          <table className="demo-table">
+            <tbody>
+              {demographics.MEMBER_COUNTRY
+                .sort((a,b) => b.impressions - a.impressions)
+                .slice(0, 20)
+                .map((d, i) => (
+                  <tr key={i}>
+                    <td>{resolveLabel('MEMBER_COUNTRY', d.pivot_value)}</td>
+                    <td className="demo-val">{fmt(d.impressions)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {demographics.MEMBER_REGION && (
+        <div className="demo-card">
+          <h3>Top 20 regions</h3>
+          <table className="demo-table">
+            <tbody>
+              {demographics.MEMBER_REGION
+                .sort((a,b) => b.impressions - a.impressions)
+                .slice(0, 20)
+                .map((d, i) => (
+                  <tr key={i}>
+                    <td>{resolveLabel('MEMBER_REGION', d.pivot_value)}</td>
+                    <td className="demo-val">{fmt(d.impressions)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+    </div>
+  </div>
+)}
     </div>
   )
 }
