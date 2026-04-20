@@ -54,7 +54,6 @@ export default function CampaignDetail() {
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [resolvedLabels, setResolvedLabels] = useState({})
-  const [creatives, setCreatives] = useState([])
   const [creativesCount, setCreativesCount] = useState(null)
 const [creatives, setCreatives] = useState([])
 
