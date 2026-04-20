@@ -93,10 +93,14 @@ const resolveGroup = async (type, endpoint, items) => {
 
       setLoading(false)
 
-      fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
+fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
   .then(r => r.json())
-  .then(d => { setCreativesCount(d.count); setCreatives(d.creatives || []) })
-  .catch(() => {})
+  .then(d => { 
+    console.log('creatives:', d)
+    setCreativesCount(d.count)
+    setCreatives(d.creatives || []) 
+  })
+  .catch(e => console.error('creatives error:', e))
 
       // Resolve URN labels op de achtergrond
       resolveGroup('MEMBER_JOB_TITLE', 'titles', grouped.MEMBER_JOB_TITLE)
