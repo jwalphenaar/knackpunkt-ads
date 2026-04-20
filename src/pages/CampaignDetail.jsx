@@ -278,7 +278,7 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
       <table className="data-table" style={{ width: '100%' }}>
         <thead>
           <tr>
-            <th>ID</th>
+            <th>Name</th>
             <th>Type</th>
             <th>Status</th>
             <th>Review</th>
@@ -287,12 +287,13 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
             <th>Clicks</th>
             <th>CTR</th>
             <th>Cost</th>
+            <th>Post</th>
           </tr>
         </thead>
         <tbody>
           {creatives.map((c, i) => (
             <tr key={i}>
-              <td className="id-cell">{c.id}</td>
+              <td style={{ fontWeight: 500 }}>{c.name || c.id}</td>
               <td>{c.contentType || '—'}</td>
               <td>
                 <span className="badge" style={{
@@ -306,11 +307,20 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
                   color: c.reviewStatus === 'APPROVED' ? '#22c55e' : '#f59e0b'
                 }}>{c.reviewStatus || '—'}</span>
               </td>
-              <td>{c.isServing ? '✓' : '✗'}</td>
+              <td style={{ textAlign: 'center' }}>{c.isServing ? '✓' : '✗'}</td>
               <td>{fmt(c.impressions)}</td>
               <td>{fmt(c.clicks)}</td>
               <td>{pct(c.clicks, c.impressions)}</td>
               <td>{eur(c.cost)}</td>
+              <td>
+                {c.reference && (
+                  <a href={`https://www.linkedin.com/feed/update/${c.reference}`}
+                    target="_blank" rel="noreferrer"
+                    style={{ color: '#0077b5', fontSize: 12 }}>
+                    View →
+                  </a>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
