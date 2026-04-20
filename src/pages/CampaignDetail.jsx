@@ -55,6 +55,8 @@ export default function CampaignDetail() {
   const [customEnd, setCustomEnd] = useState('')
   const [resolvedLabels, setResolvedLabels] = useState({})
   const [creatives, setCreatives] = useState([])
+  const [creativesCount, setCreativesCount] = useState(null)
+const [creatives, setCreatives] = useState([])
 
 const resolveGroup = async (type, endpoint, items) => {
   if (!items || items.length === 0) return
