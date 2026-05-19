@@ -115,6 +115,16 @@ code {
 .filter-btn span { background: #f3f4f6; padding: 1px 6px; border-radius: 10px; font-size: 11px; }
 .filter-btn.active { background: #0077b5; color: white; border-color: #0077b5; }
 .filter-btn.active span { background: rgba(255,255,255,0.2); }
+.account-form { display: grid; grid-template-columns: 1.2fr 1.6fr repeat(4, minmax(120px, 1fr)) auto; gap: 10px; margin-bottom: 12px; }
+.account-form input, .account-form select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 13px; background: white; }
+.account-form input:focus, .account-form select:focus { outline: none; border-color: #0077b5; }
+.add-btn { border: 1px solid #0077b5; background: #0077b5; color: white; border-radius: 6px; padding: 8px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.add-btn:disabled { opacity: 0.7; cursor: default; }
+.form-msg { margin-bottom: 12px; font-size: 13px; }
+.form-error { color: #b91c1c; }
+.form-success { color: #166534; }
+@media (max-width: 1280px) { .account-form { grid-template-columns: repeat(3, minmax(140px, 1fr)); } }
+@media (max-width: 760px) { .account-form { grid-template-columns: 1fr; } }
 .table-wrapper { background: white; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .data-table th { text-align: left; padding: 12px 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
