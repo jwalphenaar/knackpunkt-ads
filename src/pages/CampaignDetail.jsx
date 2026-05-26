@@ -55,7 +55,8 @@ export default function CampaignDetail() {
   const [customEnd, setCustomEnd] = useState('')
   const [resolvedLabels, setResolvedLabels] = useState({})
   const [creativesCount, setCreativesCount] = useState(null)
-const [creatives, setCreatives] = useState([])
+  const [creatives, setCreatives] = useState([])
+  const [showTargeting, setShowTargeting] = useState(false)
 
 const resolveGroup = async (type, endpoint, items) => {
   if (!items || items.length === 0) return
@@ -190,6 +191,10 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     return acc
   }, { impressions: 0, clicks: 0, cost: 0, leads: 0, lead_opens: 0, conversions: 0, likes: 0, follows: 0, video_views: 0, video_completions: 0, reach: 0, engagements: 0 })
 
+  const targetingEntries = campaign?.targeting_criteria
+    ? Object.entries(campaign.targeting_criteria)
+    : []
+
   return (
     <div className="campaign-detail-page">
       <button className="back-btn" onClick={() => navigate('/campaigns')}>← Back</button>
@@ -247,10 +252,42 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
             {campaign.locale_language && <div><span>Language</span><strong>{campaign.locale_language}-{campaign.locale_country}</strong></div>}
             {campaign.associated_entity && <div><span>Associated entity</span><strong>{campaign.associated_entity.split(':').pop()}</strong></div>}
             {campaign.campaign_group_id && <div><span>Campaign group ID</span><strong>{campaign.campaign_group_id}</strong></div>}
-            {campaign.targeting_criteria && <div><span>Targeting</span><strong style={{ fontSize: 11, color: '#93c5fd' }}>{Object.keys(campaign.targeting_criteria).length} criteria set</strong></div>}
+            {campaign.targeting_criteria && (
+              <div>
+                <span>Targeting</span>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 11, color: '#93c5fd' }}>{Object.keys(campaign.targeting_criteria).length} criteria set</span>
+                  <button
+                    type="button"
+                    className="targeting-link-btn"
+                    onClick={() => setShowTargeting(v => !v)}
+                  >
+                    {showTargeting ? 'Verbergen' : 'Bekijk criteria'}
+                  </button>
+                </strong>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {campaign.targeting_criteria && showTargeting && (
+        <div className="table-wrapper" style={{ marginBottom: 24 }}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,127,58,0.2)', fontWeight: 600 }}>
+            Targeting criteria
+          </div>
+          <div style={{ padding: '14px 16px' }}>
+            <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
+              {targetingEntries.map(([key, value]) => (
+                <li key={key}>
+                  <strong>{key}</strong>: {typeof value === 'string' ? value : JSON.stringify(value)}
+                </li>
+              ))}
+            </ul>
+            <pre className="targeting-json">{JSON.stringify(campaign.targeting_criteria, null, 2)}</pre>
+          </div>
+        </div>
+      )}
 
       <div className="kpi-grid kpi-grid-primary">
         <div className="kpi-card"><div className="kpi-label">Impressions</div><div className="kpi-value">{fmt(totals.impressions)}</div></div>

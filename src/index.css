@@ -437,3 +437,28 @@ code {
 .campaign-detail-page .demo-table td {
   color: #d7ddea;
 }
+
+.targeting-link-btn {
+  border: 1px solid rgba(255,127,58,0.45);
+  background: rgba(255,127,58,0.14);
+  color: #ffbf98;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.targeting-link-btn:hover {
+  background: rgba(255,127,58,0.22);
+}
+.targeting-json {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,127,58,0.2);
+  background: rgba(7, 10, 16, 0.75);
+  color: #d7ddea;
+  max-height: 280px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.4;
+}
