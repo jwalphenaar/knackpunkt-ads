@@ -125,7 +125,13 @@ export default function ResolveData() {
                         <span className="targeting-facet">{opt.label}</span>
                         <span className="targeting-op-soft">{p.status || 'pending'}</span>
                       </div>
-                      <div>IDs: {p.total || 0} · Cached: {p.cached || 0}</div>
+                      <div>
+                        IDs: {p.total || 0}
+                        {' · '}In DB: {p.from_db || 0}
+                        {' · '}Nieuw: {p.new_cached || 0}
+                        {' · '}Resolved: {p.cached || 0}
+                        {' · '}Missen: {p.missing || 0}
+                      </div>
                     </div>
                   )
                 })}
