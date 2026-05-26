@@ -24,6 +24,10 @@ export default function ResolveData() {
     () => Object.entries(selected).filter(([, on]) => on).map(([k]) => k),
     [selected]
   )
+  const statusOptions = useMemo(() => {
+    if (!job?.types?.length) return TYPE_OPTIONS
+    return TYPE_OPTIONS.filter(opt => job.types.includes(opt.key))
+  }, [job?.types])
 
   const startResolve = async () => {
     setError('')
@@ -41,7 +45,7 @@ export default function ResolveData() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Start mislukt')
-      setJob({ id: data.job_id, status: data.status })
+      setJob({ id: data.job_id, status: data.status, types: data.types || selectedTypes })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -112,7 +116,7 @@ export default function ResolveData() {
               <div style={{ marginBottom: 8 }}>Job ID: <code>{job.id}</code></div>
               <div style={{ marginBottom: 8 }}>Campagnes gescand: {job.progress?.campaigns_scanned || 0}</div>
               <div className="targeting-groups">
-                {TYPE_OPTIONS.map(opt => {
+                {statusOptions.map(opt => {
                   const p = job.progress?.[opt.key]
                   if (!p) return null
                   return (
@@ -134,4 +138,3 @@ export default function ResolveData() {
     </div>
   )
 }
-
