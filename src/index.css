@@ -462,3 +462,44 @@ code {
   font-size: 12px;
   line-height: 1.4;
 }
+
+.targeting-groups { display: flex; flex-direction: column; gap: 8px; }
+.targeting-group {
+  border: 1px solid rgba(255,127,58,0.18);
+  background: rgba(12, 16, 24, 0.6);
+  border-radius: 8px;
+  padding: 8px;
+}
+.targeting-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.targeting-op {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,127,58,0.38);
+  color: #ffbf98;
+}
+.targeting-facet {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffd7c1;
+}
+.targeting-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.targeting-chip {
+  font-size: 11px;
+  line-height: 1.2;
+  border-radius: 999px;
+  padding: 4px 8px;
+  border: 1px solid rgba(135, 189, 255, 0.28);
+  background: rgba(37, 60, 87, 0.35);
+  color: #d7e7ff;
+}
+.targeting-chip-more {
+  border-color: rgba(255,127,58,0.38);
+  background: rgba(255,127,58,0.14);
+  color: #ffbf98;
+}

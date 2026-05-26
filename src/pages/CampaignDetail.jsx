@@ -37,6 +37,15 @@ const TARGETING_KEY_LABELS = {
   titles: 'Functietitels',
   school: 'Scholen',
 }
+const TARGETING_FACET_LABELS = {
+  titles: 'Functietitels',
+  employers: 'Bedrijven',
+  skills: 'Skills',
+  staffCountRanges: 'Bedrijfsgrootte',
+  yearsOfExperienceRanges: 'Ervaringsjaren',
+  interfaceLocales: 'Taal',
+  locations: 'Locaties',
+}
 
 const heatColor = (value, allValues) => {
   if (!value || allValues.every(v => !v)) return {}
@@ -293,6 +302,80 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     return raw.replaceAll('_', ' ').toLowerCase()
   }
 
+  const parseFacetString = (input) => {
+    if (typeof input !== 'string') return []
+    const chunks = input.split('|').map(s => s.trim()).filter(Boolean)
+    return chunks.map(chunk => {
+      const m = chunk.match(/^(and|or):\s*(.+)$/i)
+      const operator = m ? m[1].toUpperCase() : null
+      const core = m ? m[2] : chunk
+
+      const facetMatch = core.match(/urn:li:adTargetingFacet:([a-zA-Z]+):\s*(.+)$/)
+      if (facetMatch) {
+        const facet = facetMatch[1]
+        const values = facetMatch[2]
+          .split(',')
+          .map(v => v.trim())
+          .filter(Boolean)
+          .map(v => humanizeTargetingValue(v))
+        return { operator, facet, values }
+      }
+
+      return { operator, facet: null, values: [humanizeTargetingValue(core)] }
+    })
+  }
+
+  const renderTargetingValue = (value) => {
+    if (typeof value === 'string') {
+      const parsed = parseFacetString(value)
+      if (parsed.length > 0) {
+        return (
+          <div className="targeting-groups">
+            {parsed.map((group, idx) => {
+              const shown = group.values.slice(0, 18)
+              const hiddenCount = group.values.length - shown.length
+              return (
+                <div key={idx} className="targeting-group">
+                  <div className="targeting-group-head">
+                    {group.operator && <span className="targeting-op">{group.operator}</span>}
+                    <span className="targeting-facet">{TARGETING_FACET_LABELS[group.facet] || group.facet || 'Waarde'}</span>
+                  </div>
+                  <div className="targeting-chips">
+                    {shown.map((v, i) => <span key={`${idx}-${i}`} className="targeting-chip">{v}</span>)}
+                    {hiddenCount > 0 && <span className="targeting-chip targeting-chip-more">+{hiddenCount} meer</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )
+      }
+      return <span>{humanizeTargetingValue(value)}</span>
+    }
+    if (Array.isArray(value)) {
+      return (
+        <div className="targeting-chips">
+          {value.map((v, i) => <span key={i} className="targeting-chip">{humanizeTargetingValue(v)}</span>)}
+        </div>
+      )
+    }
+    if (value && typeof value === 'object') {
+      return (
+        <div className="targeting-groups">
+          {Object.entries(value).map(([k, v]) => (
+            <div key={k} className="targeting-group">
+              <div className="targeting-group-head">
+                <span className="targeting-facet">{TARGETING_KEY_LABELS[k] || k}</span>
+              </div>
+              <div>{renderTargetingValue(v)}</div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+    return <span>{String(value)}</span>
+  }
+
   return (
     <div className="campaign-detail-page">
       <button className="back-btn" onClick={() => navigate('/campaigns')}>← Back</button>
@@ -378,7 +461,8 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
             <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
               {targetingEntries.map(([key, value]) => (
                 <li key={key}>
-                  <strong>{TARGETING_KEY_LABELS[key] || key}</strong>: {humanizeTargetingValue(value)}
+                  <strong>{TARGETING_KEY_LABELS[key] || key}</strong>
+                  <div style={{ marginTop: 6 }}>{renderTargetingValue(value)}</div>
                 </li>
               ))}
             </ul>
