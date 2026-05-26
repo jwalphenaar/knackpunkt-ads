@@ -45,7 +45,7 @@ export default function AccountDetail() {
 
       const { data: campData, error: campError } = await supabase
         .from('linkedin_ad_campaigns')
-        .select('id, name, status, impressions, clicks, cost_in_local_currency, one_click_leads, external_website_conversions, total_engagements, last_modified_at')
+        .select('id, name, status, last_modified_at')
         .eq('account_id', id)
         .order('last_modified_at', { ascending: false })
 
