@@ -23,6 +23,7 @@ export default function AccountDetail() {
   const [campaigns, setCampaigns] = useState([])
   const [analytics, setAnalytics] = useState([])
   const [error, setError] = useState('')
+  const [dateFilter, setDateFilter] = useState('this_month')
 
   useEffect(() => {
     const load = async () => {
@@ -69,7 +70,7 @@ export default function AccountDetail() {
       const campaignIds = allCampaigns.map(c => c.id)
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('linkedin_ad_analytics')
-        .select('campaign_id, impressions, clicks, cost_in_local_currency, one_click_leads, external_website_conversions, total_engagements, approximate_member_reach')
+        .select('campaign_id, date_start, impressions, clicks, cost_in_local_currency, one_click_leads, external_website_conversions, total_engagements, approximate_member_reach')
         .in('campaign_id', campaignIds)
 
       if (analyticsError) {
@@ -85,8 +86,52 @@ export default function AccountDetail() {
     load()
   }, [id])
 
+  const getDateRange = (filter) => {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const startOfYear = new Date(now.getFullYear(), 0, 1)
+    const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3
+    const startOfQuarter = new Date(now.getFullYear(), quarterStartMonth, 1)
+
+    if (filter === 'all') return [null, null]
+    if (filter === 'this_month') return [startOfMonth, today]
+    if (filter === 'year_to_date') return [startOfYear, today]
+    if (filter === 'quarter_to_date') return [startOfQuarter, today]
+
+    if (filter === 'last_month') {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const end = new Date(now.getFullYear(), now.getMonth(), 0)
+      return [start, end]
+    }
+
+    if (filter === 'last_quarter') {
+      const start = new Date(now.getFullYear(), quarterStartMonth - 3, 1)
+      const end = new Date(now.getFullYear(), quarterStartMonth, 0)
+      return [start, end]
+    }
+
+    if (filter === 'last_12_months') {
+      const start = new Date(now.getFullYear(), now.getMonth() - 12, now.getDate())
+      return [start, today]
+    }
+
+    return [null, null]
+  }
+
+  const filteredAnalytics = useMemo(() => {
+    const [start, end] = getDateRange(dateFilter)
+    if (!start || !end) return analytics
+
+    return analytics.filter(row => {
+      if (!row.date_start) return false
+      const d = new Date(row.date_start)
+      return d >= start && d <= end
+    })
+  }, [analytics, dateFilter])
+
   const totals = useMemo(() => {
-    return analytics.reduce((acc, row) => {
+    return filteredAnalytics.reduce((acc, row) => {
       acc.impressions += row.impressions || 0
       acc.clicks += row.clicks || 0
       acc.cost += parseFloat(row.cost_in_local_currency || 0)
@@ -96,11 +141,11 @@ export default function AccountDetail() {
       acc.reach += row.approximate_member_reach || 0
       return acc
     }, { impressions: 0, clicks: 0, cost: 0, leads: 0, conversions: 0, engagements: 0, reach: 0 })
-  }, [analytics])
+  }, [filteredAnalytics])
 
-  const topCampaigns = useMemo(() => {
+  const activeCampaigns = useMemo(() => {
     const perCampaign = {}
-    for (const row of analytics) {
+    for (const row of filteredAnalytics) {
       if (!perCampaign[row.campaign_id]) {
         perCampaign[row.campaign_id] = { impressions: 0, clicks: 0, cost: 0, leads: 0 }
       }
@@ -111,6 +156,7 @@ export default function AccountDetail() {
     }
 
     return campaigns
+      .filter(c => (c.status || '').toUpperCase() === 'ACTIVE')
       .map(c => ({
         id: c.id,
         name: c.name,
@@ -118,8 +164,7 @@ export default function AccountDetail() {
         ...perCampaign[c.id],
       }))
       .sort((a, b) => (b.impressions || 0) - (a.impressions || 0))
-      .slice(0, 10)
-  }, [analytics, campaigns])
+  }, [filteredAnalytics, campaigns])
 
   if (loading) return <div className="loading">Laden...</div>
 
@@ -148,6 +193,22 @@ export default function AccountDetail() {
         </div>
       </div>
 
+      <div className="date-filters">
+        {[
+          ['this_month', 'Deze maand'],
+          ['last_month', 'Vorige maand'],
+          ['quarter_to_date', 'Dit kwartaal'],
+          ['last_quarter', 'Vorig kwartaal'],
+          ['year_to_date', 'Dit jaar'],
+          ['last_12_months', 'Afgelopen 12 maanden'],
+          ['all', 'Alles'],
+        ].map(([key, label]) => (
+          <button key={key} className={`filter-btn ${dateFilter === key ? 'active' : ''}`} onClick={() => setDateFilter(key)}>
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="kpi-grid">
         <div className="kpi-card"><div className="kpi-label">Campagnes</div><div className="kpi-value">{fmt(campaigns.length)}</div></div>
         <div className="kpi-card"><div className="kpi-label">Impressions</div><div className="kpi-value">{fmt(totals.impressions)}</div></div>
@@ -160,7 +221,7 @@ export default function AccountDetail() {
         <div className="kpi-card"><div className="kpi-label">Conversions</div><div className="kpi-value">{fmt(totals.conversions)}</div></div>
       </div>
 
-      <h2 className="section-title">Top campagnes (op impressions)</h2>
+      <h2 className="section-title">Actieve campagnes</h2>
       <div className="table-wrapper">
         <table className="data-table">
           <thead>
@@ -175,7 +236,7 @@ export default function AccountDetail() {
             </tr>
           </thead>
           <tbody>
-            {topCampaigns.map(c => (
+            {activeCampaigns.map(c => (
               <tr key={c.id} onClick={() => navigate(`/campaigns/${c.id}`)} style={{ cursor: 'pointer' }}>
                 <td className="name-cell">{c.name}</td>
                 <td><span className="badge">{c.status || '—'}</span></td>
@@ -186,9 +247,9 @@ export default function AccountDetail() {
                 <td>{fmt(c.leads)}</td>
               </tr>
             ))}
-            {topCampaigns.length === 0 && (
+            {activeCampaigns.length === 0 && (
               <tr>
-                <td colSpan={7}>Geen campagne-data beschikbaar.</td>
+                <td colSpan={7}>Geen actieve campagnes in deze periode.</td>
               </tr>
             )}
           </tbody>
