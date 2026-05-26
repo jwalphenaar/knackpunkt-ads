@@ -71,6 +71,12 @@ export default function CampaignDetail() {
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [resolvedLabels, setResolvedLabels] = useState({})
+  const [targetingResolved, setTargetingResolved] = useState({
+    titles: {},
+    industries: {},
+    companies: {},
+    geo: {},
+  })
   const [creativesCount, setCreativesCount] = useState(null)
   const [creatives, setCreatives] = useState([])
   const [showTargeting, setShowTargeting] = useState(false)
@@ -129,6 +135,56 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
       resolveGroup('MEMBER_REGION', 'geo', grouped.MEMBER_REGION)
     })
   }, [id])
+
+  useEffect(() => {
+    const tc = campaign?.targeting_criteria
+    if (!tc) return
+
+    const collectUrnIds = (node, acc = []) => {
+      if (Array.isArray(node)) {
+        node.forEach(v => collectUrnIds(v, acc))
+        return acc
+      }
+      if (node && typeof node === 'object') {
+        Object.values(node).forEach(v => collectUrnIds(v, acc))
+        return acc
+      }
+      if (typeof node === 'string' && node.startsWith('urn:li:')) {
+        acc.push(node)
+      }
+      return acc
+    }
+
+    const urns = collectUrnIds(tc, [])
+    const idsByType = { titles: [], industries: [], companies: [], geo: [] }
+    for (const urn of urns) {
+      const parts = urn.split(':')
+      const type = parts[2]
+      const id = parts[3]
+      if (!id) continue
+      if (type === 'title') idsByType.titles.push(id)
+      if (type === 'industry') idsByType.industries.push(id)
+      if (type === 'company') idsByType.companies.push(id)
+      if (type === 'geo') idsByType.geo.push(id)
+    }
+
+    const fetchMap = async (endpoint, ids) => {
+      if (!ids.length) return {}
+      const unique = [...new Set(ids)]
+      const res = await fetch(`${API}/api/linkedin-ads/resolve/${endpoint}?ids=${unique.join(',')}`)
+      if (!res.ok) return {}
+      return res.json()
+    }
+
+    Promise.all([
+      fetchMap('titles', idsByType.titles),
+      fetchMap('industries', idsByType.industries),
+      fetchMap('companies', idsByType.companies),
+      fetchMap('geo', idsByType.geo),
+    ]).then(([titles, industries, companies, geo]) => {
+      setTargetingResolved({ titles, industries, companies, geo })
+    }).catch(() => {})
+  }, [campaign])
 
   if (loading) return <div className="loading">Loading...</div>
   if (!campaign) return <div className="loading">Campaign not found.</div>
@@ -226,6 +282,10 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     if (typeof value !== 'string') return String(value)
 
     const raw = value.includes(':') ? value.split(':').pop() : value
+    if (value.startsWith('urn:li:title:') && targetingResolved.titles[raw]) return targetingResolved.titles[raw]
+    if (value.startsWith('urn:li:industry:') && targetingResolved.industries[raw]) return targetingResolved.industries[raw]
+    if (value.startsWith('urn:li:company:') && targetingResolved.companies[raw]) return targetingResolved.companies[raw]
+    if (value.startsWith('urn:li:geo:') && targetingResolved.geo[raw]) return targetingResolved.geo[raw]
     if (SENIORITY_MAP[raw]) return SENIORITY_MAP[raw]
     if (COMPANY_SIZE_MAP[raw]) return COMPANY_SIZE_MAP[raw]
 
