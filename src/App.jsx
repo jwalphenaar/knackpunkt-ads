@@ -3,6 +3,7 @@ import Accounts from './pages/Accounts'
 import Campaigns from './pages/Campaigns'
 import CampaignDetail from './pages/CampaignDetail'
 import AccountDetail from './pages/AccountDetail'
+import ResolveData from './pages/ResolveData'
 import './App.css'
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
           <div className="logo">Knackpunkt<span>Ads</span></div>
           <NavLink to="/">Accounts</NavLink>
           <NavLink to="/campaigns">Campagnes</NavLink>
+          <NavLink to="/resolve-data">Resolve Data</NavLink>
         </nav>
         <main className="content">
           <Routes>
@@ -20,6 +22,7 @@ export default function App() {
             <Route path="/accounts/:id" element={<AccountDetail />} />
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/campaigns/:id" element={<CampaignDetail />} />
+            <Route path="/resolve-data" element={<ResolveData />} />
           </Routes>
         </main>
       </div>
