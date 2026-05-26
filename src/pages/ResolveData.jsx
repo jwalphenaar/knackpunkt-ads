@@ -131,6 +131,7 @@ export default function ResolveData() {
                         {' · '}Nieuw: {p.new_cached || 0}
                         {' · '}Resolved: {p.cached || 0}
                         {' · '}Missen: {p.missing || 0}
+                        {' · '}Dekking: {p.coverage_pct ?? 0}%
                       </div>
                     </div>
                   )
