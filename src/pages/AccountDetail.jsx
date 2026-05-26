@@ -80,7 +80,7 @@ export default function AccountDetail() {
       const campaignIds = allCampaigns.map(c => c.id)
       const { data: analyticsData, error: analyticsError } = await supabase
         .from('linkedin_ad_analytics')
-        .select('campaign_id, date_start, impressions, clicks, cost_in_local_currency, one_click_leads, external_website_conversions, total_engagements, approximate_member_reach')
+        .select('campaign_id, date_start, impressions, clicks, cost_in_local_currency, one_click_leads, one_click_lead_form_opens, video_views, landing_page_clicks, external_website_conversions, total_engagements, approximate_member_reach')
         .in('campaign_id', campaignIds)
 
       if (analyticsError) {
@@ -150,11 +150,14 @@ export default function AccountDetail() {
       acc.clicks += row.clicks || 0
       acc.cost += parseFloat(row.cost_in_local_currency || 0)
       acc.leads += row.one_click_leads || 0
+      acc.leadFormOpens += row.one_click_lead_form_opens || 0
+      acc.videoViews += row.video_views || 0
+      acc.landingPageClicks += row.landing_page_clicks || 0
       acc.conversions += row.external_website_conversions || 0
       acc.engagements += row.total_engagements || 0
       acc.reach += row.approximate_member_reach || 0
       return acc
-    }, { impressions: 0, clicks: 0, cost: 0, leads: 0, conversions: 0, engagements: 0, reach: 0 })
+    }, { impressions: 0, clicks: 0, cost: 0, leads: 0, leadFormOpens: 0, videoViews: 0, landingPageClicks: 0, conversions: 0, engagements: 0, reach: 0 })
   }, [filteredAnalytics])
 
   const activeCampaigns = useMemo(() => {
@@ -224,12 +227,16 @@ export default function AccountDetail() {
             <div className="zenith-progress"><span style={{ width: `${Math.min(100, Math.round((totals.cost / 75000) * 100))}%` }} /></div>
             <div className="zenith-subtle">{Math.min(100, Math.round((totals.cost / 75000) * 100))}% van budgetindicatie</div>
           </div>
-          <div className="zenith-card"><div className="zenith-label">Impressions</div><div className="zenith-value">{fmt(totals.impressions)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Clicks</div><div className="zenith-value">{fmt(totals.clicks)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">CTR</div><div className="zenith-value zenith-accent">{pct(totals.clicks, totals.impressions)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Leads</div><div className="zenith-value">{fmt(totals.leads)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Average CPC</div><div className="zenith-value">{totals.clicks > 0 ? eur(totals.cost / totals.clicks) : '€0,00'}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Actieve Campagnes</div><div className="zenith-value">{fmt(activeCampaigns.length)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Impressions</div><div className="zenith-value zenith-value-compact">{fmt(totals.impressions)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Clicks</div><div className="zenith-value zenith-value-compact">{fmt(totals.clicks)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">CTR</div><div className="zenith-value zenith-value-compact zenith-accent">{pct(totals.clicks, totals.impressions)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Leads</div><div className="zenith-value zenith-value-compact">{fmt(totals.leads)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Lead Form Opens</div><div className="zenith-value zenith-value-compact">{fmt(totals.leadFormOpens)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Video Views</div><div className="zenith-value zenith-value-compact">{fmt(totals.videoViews)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Landing Page Clicks</div><div className="zenith-value zenith-value-compact">{fmt(totals.landingPageClicks)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Average CPC</div><div className="zenith-value zenith-value-compact">{totals.clicks > 0 ? eur(totals.cost / totals.clicks) : '€0,00'}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Average CPM</div><div className="zenith-value zenith-value-compact">{totals.impressions > 0 ? eur((totals.cost / totals.impressions) * 1000) : '€0,00'}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Actieve Campagnes</div><div className="zenith-value zenith-value-compact">{fmt(activeCampaigns.length)}</div></div>
         </div>
 
         <div className="zenith-table-wrap">
