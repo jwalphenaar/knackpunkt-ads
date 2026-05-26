@@ -418,6 +418,62 @@ code {
 .campaign-detail-page .kpi-grid-secondary {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
+
+.campaign-detail-page .demo-card {
+  background: rgba(15, 20, 30, 0.92);
+  border: 1px solid rgba(255, 127, 58, 0.28);
+  border-radius: 12px;
+}
+
+.campaign-detail-page .demo-card h3 {
+  color: #f3f4f6;
+  margin-bottom: 10px;
+}
+
+.campaign-detail-page .demo-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid rgba(102, 182, 255, 0.18);
+  border-radius: 10px;
+}
+
+.campaign-detail-page .demo-table tr {
+  border-bottom: 1px solid rgba(102, 182, 255, 0.12);
+}
+
+.campaign-detail-page .demo-table tr:last-child {
+  border-bottom: none;
+}
+
+.campaign-detail-page .demo-table td {
+  background: rgba(23, 31, 46, 0.96);
+  color: #e5e7eb;
+  padding: 10px 12px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.campaign-detail-page .demo-table tr:nth-child(odd) td {
+  background: rgba(19, 26, 40, 0.96);
+}
+
+.campaign-detail-page .demo-table tr:nth-child(even) td {
+  background: rgba(24, 33, 48, 0.96);
+}
+
+.campaign-detail-page .demo-table td:first-child {
+  font-weight: 500;
+}
+
+.campaign-detail-page .demo-table .demo-val {
+  color: #7dd3fc !important;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+  min-width: 84px;
+}
 .campaign-detail-page .kpi-card {
   background: rgba(20, 25, 35, 0.78);
   border: 1px solid rgba(255,127,58,0.24);
