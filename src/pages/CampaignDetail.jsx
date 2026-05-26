@@ -350,6 +350,46 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     })
   }
 
+  const collectFacetGroups = (node, inheritedOperator = null) => {
+    if (node == null) return []
+
+    if (typeof node === 'string') {
+      return parseFacetString(node)
+    }
+
+    if (Array.isArray(node)) {
+      return node.flatMap(item => collectFacetGroups(item, inheritedOperator))
+    }
+
+    if (typeof node === 'object') {
+      const groups = []
+      for (const [k, v] of Object.entries(node)) {
+        const lower = k.toLowerCase()
+        if (lower === 'and' || lower === 'or') {
+          groups.push(...collectFacetGroups(v, lower.toUpperCase()))
+          continue
+        }
+
+        const facetMatch = k.match(/^urn:li:adTargetingFacet:([a-zA-Z]+)$/)
+        if (facetMatch) {
+          const facet = facetMatch[1]
+          const list = Array.isArray(v) ? v : [v]
+          groups.push({
+            operator: inheritedOperator,
+            facet,
+            values: list.map(item => humanizeByFacet(facet, item)),
+          })
+          continue
+        }
+
+        groups.push(...collectFacetGroups(v, inheritedOperator))
+      }
+      return groups
+    }
+
+    return []
+  }
+
   const renderParsedGroups = (groups) => (
     <div className="targeting-groups">
       {groups.map((group, idx) => {
@@ -372,6 +412,9 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
   )
 
   const renderTargetingValue = (value) => {
+    const nestedGroups = collectFacetGroups(value)
+    if (nestedGroups.length > 0) return renderParsedGroups(nestedGroups)
+
     if (typeof value === 'string') {
       const parsed = parseFacetString(value)
       if (parsed.length > 0) {
@@ -380,24 +423,6 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
       return <span>{humanizeTargetingValue(value)}</span>
     }
     if (Array.isArray(value)) {
-      const parsed = value.flatMap(v => (typeof v === 'string' ? parseFacetString(v) : []))
-      if (parsed.length > 0) return renderParsedGroups(parsed)
-      const flattenedGroups = value
-        .filter(v => v && typeof v === 'object' && !Array.isArray(v))
-        .flatMap(v => Object.entries(v))
-        .map(([k, v]) => {
-          const match = k.match(/^urn:li:adTargetingFacet:([a-zA-Z]+)$/)
-          if (!match) return null
-          const facet = match[1]
-          const list = Array.isArray(v) ? v : [v]
-          return {
-            operator: null,
-            facet,
-            values: list.map(item => humanizeByFacet(facet, item)),
-          }
-        })
-        .filter(Boolean)
-      if (flattenedGroups.length > 0) return renderParsedGroups(flattenedGroups)
       return (
         <div className="targeting-chips">
           {value.map((v, i) => <span key={i} className="targeting-chip">{humanizeTargetingValue(v)}</span>)}
@@ -405,19 +430,6 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
       )
     }
     if (value && typeof value === 'object') {
-      const facetEntries = Object.entries(value).filter(([k]) => /^urn:li:adTargetingFacet:[a-zA-Z]+$/.test(k))
-      if (facetEntries.length > 0) {
-        const groups = facetEntries.map(([k, v]) => {
-          const facet = k.replace('urn:li:adTargetingFacet:', '')
-          const list = Array.isArray(v) ? v : [v]
-          return {
-            operator: null,
-            facet,
-            values: list.map(item => humanizeByFacet(facet, item)),
-          }
-        })
-        return renderParsedGroups(groups)
-      }
       return (
         <div className="targeting-groups">
           {Object.entries(value).map(([k, v]) => (
