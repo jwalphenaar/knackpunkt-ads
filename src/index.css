@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -209,3 +211,144 @@ code {
 .demo-table tr:nth-child(odd) td { background: #f8fafc; }
 .demo-table tr:nth-child(even) td { background: white; }
 .demo-val { text-align: right; font-weight: 600; color: #0077b5 !important; min-width: 60px; }
+
+.zenith-page {
+  min-height: calc(100vh - 64px);
+  background: #0b0e14;
+  background-image:
+    linear-gradient(rgba(0, 238, 252, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 238, 252, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  margin: -32px;
+  padding: 20px 24px 36px;
+  color: #e1e2eb;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.zenith-shell { max-width: 1260px; margin: 0 auto; }
+.zenith-back { border-color: #2d3340; color: #c4c9ac; margin-bottom: 14px; }
+.zenith-back:hover { background: rgba(171, 214, 0, 0.08); border-color: rgba(171, 214, 0, 0.35); color: #eaff8f; }
+
+.zenith-topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+.zenith-account { font-family: "Space Grotesk", Inter, sans-serif; font-size: 38px; font-weight: 700; line-height: 1.1; color: #fff; }
+.zenith-period-select {
+  border: 1px solid rgba(171, 214, 0, 0.25);
+  border-radius: 10px;
+  background: rgba(25, 28, 34, 0.9);
+  color: #c4c9ac;
+  padding: 10px 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+}
+
+.zenith-header { margin-bottom: 18px; }
+.zenith-eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 12px;
+  color: #abd600;
+  margin-bottom: 8px;
+}
+.zenith-title { font-family: "Space Grotesk", Inter, sans-serif; font-size: 48px; line-height: 1.1; font-weight: 600; color: #fff; margin: 0; }
+
+.zenith-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.zenith-card {
+  grid-column: span 2;
+  background: rgba(20, 25, 35, 0.7);
+  border: 1px solid rgba(171, 214, 0, 0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  padding: 20px;
+}
+.zenith-card-spend { grid-column: span 4; }
+.zenith-label {
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #c4c9ac;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.zenith-value {
+  font-family: "JetBrains Mono", monospace;
+  color: #fff;
+  font-size: 42px;
+  line-height: 1;
+  font-weight: 700;
+}
+.zenith-accent { color: #c3f400; }
+.zenith-subtle { margin-top: 8px; color: #8e9379; font-size: 12px; }
+.zenith-progress { margin-top: 16px; height: 6px; background: #2c3040; border-radius: 999px; overflow: hidden; }
+.zenith-progress span { display: block; height: 100%; background: #abd600; box-shadow: 0 0 8px rgba(171, 214, 0, 0.8); }
+
+.zenith-table-wrap {
+  background: rgba(16, 19, 26, 0.85);
+  border: 1px solid rgba(171, 214, 0, 0.22);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.zenith-table-title { padding: 16px 24px; font-family: "Space Grotesk", Inter, sans-serif; font-size: 28px; color: #fff; border-bottom: 1px solid rgba(171, 214, 0, 0.15); }
+.zenith-table { width: 100%; border-collapse: collapse; }
+.zenith-table th {
+  text-align: left;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 12px;
+  color: #c4c9ac;
+  padding: 14px 24px;
+  background: rgba(25, 28, 34, 0.75);
+}
+.zenith-table td {
+  padding: 18px 24px;
+  border-top: 1px solid rgba(68, 73, 51, 0.45);
+  color: #e1e2eb;
+}
+.zenith-campaign-name { font-size: 34px; line-height: 1.1; font-family: "Space Grotesk", Inter, sans-serif; color: #fff; }
+.zenith-campaign-id { font-family: "JetBrains Mono", monospace; font-size: 12px; color: #8e9379; margin-top: 4px; }
+.zenith-status-pill {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(171, 214, 0, 0.45);
+  color: #c3f400;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+}
+.zenith-action-btn {
+  border: 1px solid rgba(125, 244, 255, 0.45);
+  background: transparent;
+  color: #7df4ff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.zenith-action-btn:hover { box-shadow: 0 0 10px rgba(125, 244, 255, 0.45); }
+
+@media (max-width: 1400px) {
+  .zenith-account { font-size: 32px; }
+  .zenith-title { font-size: 40px; }
+  .zenith-value { font-size: 34px; }
+}
+@media (max-width: 1024px) {
+  .zenith-page { margin: -20px; padding: 16px; }
+  .zenith-topbar { flex-direction: column; align-items: flex-start; }
+  .zenith-kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .zenith-card, .zenith-card-spend { grid-column: span 3; }
+  .zenith-campaign-name { font-size: 26px; }
+}
+@media (max-width: 760px) {
+  .zenith-kpi-grid { grid-template-columns: 1fr; }
+  .zenith-card, .zenith-card-spend { grid-column: span 1; }
+  .zenith-title { font-size: 30px; }
+  .zenith-account { font-size: 26px; }
+  .zenith-table th, .zenith-table td { padding: 12px; }
+  .zenith-campaign-name { font-size: 20px; }
+}

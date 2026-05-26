@@ -25,6 +25,16 @@ export default function AccountDetail() {
   const [error, setError] = useState('')
   const [dateFilter, setDateFilter] = useState('this_month')
 
+  const periodOptions = [
+    ['this_month', 'Deze maand'],
+    ['last_month', 'Vorige maand'],
+    ['quarter_to_date', 'Dit kwartaal'],
+    ['last_quarter', 'Vorig kwartaal'],
+    ['year_to_date', 'Dit jaar'],
+    ['last_12_months', 'Afgelopen 12 maanden'],
+    ['all', 'Alles'],
+  ]
+
   useEffect(() => {
     const load = async () => {
       setLoading(true)
@@ -166,6 +176,13 @@ export default function AccountDetail() {
       .sort((a, b) => (b.impressions || 0) - (a.impressions || 0))
   }, [filteredAnalytics, campaigns])
 
+  const registryRows = useMemo(() => {
+    return activeCampaigns.slice(0, 12).map(c => ({
+      ...c,
+      code: `CN-${String(c.id).slice(-4).toUpperCase()}`,
+    }))
+  }, [activeCampaigns])
+
   if (loading) return <div className="loading">Laden...</div>
 
   if (error) {
@@ -178,82 +195,74 @@ export default function AccountDetail() {
   }
 
   return (
-    <div>
-      <button className="back-btn" onClick={() => navigate('/')}>← Terug naar accounts</button>
+    <div className="zenith-page">
+      <button className="back-btn zenith-back" onClick={() => navigate('/')}>← Terug</button>
 
-      <div className="detail-hero">
-        <div className="detail-account-name">{account?.name}</div>
-        <h1 className="detail-title">Account Dashboard</h1>
-        <div className="detail-meta">
-          <span className="meta-tag">{account?.type || 'Onbekend type'}</span>
-          <span className="meta-tag">{account?.currency || '—'}</span>
-          <span className="badge" style={{ background: (STATUS_COLORS[account?.serving_statuses?.[0]] || '#9ca3af') + '30', color: STATUS_COLORS[account?.serving_statuses?.[0]] || '#9ca3af', border: `1px solid ${STATUS_COLORS[account?.serving_statuses?.[0]] || '#9ca3af'}` }}>
-            {account?.serving_statuses?.[0] || account?.status || 'Unknown'}
-          </span>
+      <div className="zenith-shell">
+        <div className="zenith-topbar">
+          <div className="zenith-account">{account?.name}</div>
+          <div className="zenith-controls">
+            <select value={dateFilter} onChange={e => setDateFilter(e.target.value)} className="zenith-period-select">
+              {periodOptions.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+            </select>
+          </div>
         </div>
-      </div>
 
-      <div className="date-filters">
-        {[
-          ['this_month', 'Deze maand'],
-          ['last_month', 'Vorige maand'],
-          ['quarter_to_date', 'Dit kwartaal'],
-          ['last_quarter', 'Vorig kwartaal'],
-          ['year_to_date', 'Dit jaar'],
-          ['last_12_months', 'Afgelopen 12 maanden'],
-          ['all', 'Alles'],
-        ].map(([key, label]) => (
-          <button key={key} className={`filter-btn ${dateFilter === key ? 'active' : ''}`} onClick={() => setDateFilter(key)}>
-            {label}
-          </button>
-        ))}
-      </div>
+        <div className="zenith-header">
+          <div className="zenith-eyebrow">Zenith Protocol Active</div>
+          <h1 className="zenith-title">Performance Overview</h1>
+        </div>
 
-      <div className="kpi-grid">
-        <div className="kpi-card"><div className="kpi-label">Campagnes</div><div className="kpi-value">{fmt(campaigns.length)}</div></div>
-        <div className="kpi-card"><div className="kpi-label">Impressions</div><div className="kpi-value">{fmt(totals.impressions)}</div></div>
-        <div className="kpi-card"><div className="kpi-label">Reach</div><div className="kpi-value">{fmt(totals.reach)}</div></div>
-        <div className="kpi-card"><div className="kpi-label">Clicks</div><div className="kpi-value">{fmt(totals.clicks)}</div></div>
-        <div className="kpi-card"><div className="kpi-label">CTR</div><div className="kpi-value">{pct(totals.clicks, totals.impressions)}</div></div>
-        <div className="kpi-card"><div className="kpi-label">Spent</div><div className="kpi-value">{eur(totals.cost)}</div></div>
-        <div className="kpi-card"><div className="kpi-label">CPC</div><div className="kpi-value">{totals.clicks > 0 ? eur(totals.cost / totals.clicks) : '€0,00'}</div></div>
-        <div className="kpi-card"><div className="kpi-label">Leads</div><div className="kpi-value">{fmt(totals.leads)}</div></div>
-        <div className="kpi-card"><div className="kpi-label">Conversions</div><div className="kpi-value">{fmt(totals.conversions)}</div></div>
-      </div>
+        <div className="zenith-kpi-grid">
+          <div className="zenith-card zenith-card-spend">
+            <div className="zenith-label">Total Ad Spend</div>
+            <div className="zenith-value zenith-accent">{eur(totals.cost)}</div>
+            <div className="zenith-progress"><span style={{ width: `${Math.min(100, Math.round((totals.cost / 75000) * 100))}%` }} /></div>
+            <div className="zenith-subtle">{Math.min(100, Math.round((totals.cost / 75000) * 100))}% van budgetindicatie</div>
+          </div>
+          <div className="zenith-card"><div className="zenith-label">Impressions</div><div className="zenith-value">{fmt(totals.impressions)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Clicks</div><div className="zenith-value">{fmt(totals.clicks)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">CTR</div><div className="zenith-value zenith-accent">{pct(totals.clicks, totals.impressions)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Leads</div><div className="zenith-value">{fmt(totals.leads)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Average CPC</div><div className="zenith-value">{totals.clicks > 0 ? eur(totals.cost / totals.clicks) : '€0,00'}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Actieve Campagnes</div><div className="zenith-value">{fmt(activeCampaigns.length)}</div></div>
+        </div>
 
-      <h2 className="section-title">Actieve campagnes</h2>
-      <div className="table-wrapper">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Naam</th>
-              <th>Status</th>
-              <th>Impressions</th>
-              <th>Clicks</th>
-              <th>CTR</th>
-              <th>Spent</th>
-              <th>Leads</th>
-            </tr>
-          </thead>
-          <tbody>
-            {activeCampaigns.map(c => (
-              <tr key={c.id} onClick={() => navigate(`/campaigns/${c.id}`)} style={{ cursor: 'pointer' }}>
-                <td className="name-cell">{c.name}</td>
-                <td><span className="badge">{c.status || '—'}</span></td>
-                <td>{fmt(c.impressions)}</td>
-                <td>{fmt(c.clicks)}</td>
-                <td>{pct(c.clicks, c.impressions)}</td>
-                <td>{eur(c.cost)}</td>
-                <td>{fmt(c.leads)}</td>
-              </tr>
-            ))}
-            {activeCampaigns.length === 0 && (
+        <div className="zenith-table-wrap">
+          <div className="zenith-table-title">Campaign Registry</div>
+          <table className="zenith-table">
+            <thead>
               <tr>
-                <td colSpan={7}>Geen actieve campagnes in deze periode.</td>
+                <th>Campaign Identity</th>
+                <th>Status</th>
+                <th>Impressions</th>
+                <th>CTR</th>
+                <th>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {registryRows.map(c => (
+                <tr key={c.id}>
+                  <td>
+                    <div className="zenith-campaign-name">{c.name}</div>
+                    <div className="zenith-campaign-id">ID: {c.code}</div>
+                  </td>
+                  <td><span className="zenith-status-pill">{c.status || 'ACTIVE'}</span></td>
+                  <td>{fmt(c.impressions)}</td>
+                  <td>{pct(c.clicks, c.impressions)}</td>
+                  <td>
+                    <button className="zenith-action-btn" onClick={() => navigate(`/campaigns/${c.id}`)} aria-label="Open campagne">↗</button>
+                  </td>
+                </tr>
+              ))}
+              {registryRows.length === 0 && (
+                <tr>
+                  <td colSpan={5}>Geen actieve campagnes in deze periode.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
