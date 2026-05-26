@@ -279,6 +279,7 @@ export default function AccountDetail() {
             {' · '}Paginas: {syncJob.progress.campaign_pages_loaded || 0}
             {' · '}Campagnes ingeladen: {syncJob.progress.campaigns_synced || 0}
             {' · '}Campagnes verwerkt: {syncJob.progress.campaigns_done || 0}/{syncJob.progress.campaigns_total || 0}
+            {' · '}Overgeslagen: {syncJob.progress.campaigns_skipped || 0}
             {' · '}Analytics rows: {syncJob.progress.analytics_rows_synced || 0}
             {' · '}Demo rows: {syncJob.progress.demographics_rows_synced || 0}
           </div>
