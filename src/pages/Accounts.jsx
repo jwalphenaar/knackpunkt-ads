@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useNavigate } from 'react-router-dom'
 
 const STATUS_COLORS = {
   RUNNABLE: '#22c55e',
@@ -11,6 +12,7 @@ const STATUS_COLORS = {
 }
 
 export default function Accounts() {
+  const navigate = useNavigate()
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -152,7 +154,7 @@ export default function Accounts() {
           </thead>
           <tbody>
             {filtered.map(a => (
-              <tr key={a.id}>
+              <tr key={a.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/accounts/${a.id}`)}>
                 <td className="name-cell">{a.name}</td>
                 <td>
                   <span className="badge" style={{ background: STATUS_COLORS[a.serving_statuses?.[0]] + '20', color: STATUS_COLORS[a.serving_statuses?.[0]] }}>

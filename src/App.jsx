@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Accounts from './pages/Accounts'
 import Campaigns from './pages/Campaigns'
 import CampaignDetail from './pages/CampaignDetail'
+import AccountDetail from './pages/AccountDetail'
 import './App.css'
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
         <main className="content">
           <Routes>
             <Route path="/" element={<Accounts />} />
+            <Route path="/accounts/:id" element={<AccountDetail />} />
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/campaigns/:id" element={<CampaignDetail />} />
           </Routes>
