@@ -8,6 +8,7 @@ const TYPE_OPTIONS = [
   { key: 'companies', label: 'Companies' },
   { key: 'geo', label: 'Geo / Locations' },
 ]
+const RESULT_PAGE_SIZE = 15
 
 export default function ResolveData() {
   const [selected, setSelected] = useState({
@@ -19,6 +20,8 @@ export default function ResolveData() {
   const [job, setJob] = useState(null)
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
+  const [pageByType, setPageByType] = useState({ titles: 1, industries: 1, companies: 1, geo: 1 })
+  const [filterByType, setFilterByType] = useState({ titles: 'all', industries: 'all', companies: 'all', geo: 'all' })
 
   const selectedTypes = useMemo(
     () => Object.entries(selected).filter(([, on]) => on).map(([k]) => k),
@@ -28,6 +31,11 @@ export default function ResolveData() {
     if (!job?.types?.length) return TYPE_OPTIONS
     return TYPE_OPTIONS.filter(opt => job.types.includes(opt.key))
   }, [job?.types])
+  const resultTypeOptions = [
+    { key: 'all', label: 'Alles' },
+    { key: 'resolved', label: 'Resolved' },
+    { key: 'missing', label: 'Missend' },
+  ]
 
   const startResolve = async () => {
     setError('')
@@ -46,6 +54,7 @@ export default function ResolveData() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Start mislukt')
       setJob({ id: data.job_id, status: data.status, types: data.types || selectedTypes })
+      setPageByType({ titles: 1, industries: 1, companies: 1, geo: 1 })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -119,6 +128,18 @@ export default function ResolveData() {
                 {statusOptions.map(opt => {
                   const p = job.progress?.[opt.key]
                   if (!p) return null
+                  const rows = Array.isArray(p.rows) ? p.rows : []
+                  const activeFilter = filterByType[opt.key] || 'all'
+                  const filteredRows = rows.filter((row) => {
+                    if (activeFilter === 'resolved') return row.resolved
+                    if (activeFilter === 'missing') return !row.resolved
+                    return true
+                  })
+                  const totalPages = Math.max(1, Math.ceil(filteredRows.length / RESULT_PAGE_SIZE))
+                  const currentPage = Math.min(pageByType[opt.key] || 1, totalPages)
+                  const from = (currentPage - 1) * RESULT_PAGE_SIZE
+                  const pageRows = filteredRows.slice(from, from + RESULT_PAGE_SIZE)
+
                   return (
                     <div key={opt.key} className="targeting-group">
                       <div className="targeting-group-head">
@@ -133,6 +154,69 @@ export default function ResolveData() {
                         {' · '}Missen: {p.missing || 0}
                         {' · '}Dekking: {p.coverage_pct ?? 0}%
                       </div>
+                      {rows.length > 0 && (
+                        <div style={{ marginTop: 10 }}>
+                          <div className="targeting-chips" style={{ marginBottom: 8 }}>
+                            {resultTypeOptions.map(ft => (
+                              <button
+                                key={ft.key}
+                                type="button"
+                                className="targeting-chip"
+                                onClick={() => {
+                                  setFilterByType(prev => ({ ...prev, [opt.key]: ft.key }))
+                                  setPageByType(prev => ({ ...prev, [opt.key]: 1 }))
+                                }}
+                                style={{
+                                  borderColor: activeFilter === ft.key ? 'rgba(255,127,58,0.7)' : undefined,
+                                  color: activeFilter === ft.key ? '#fff' : undefined,
+                                }}
+                              >
+                                {ft.label}
+                              </button>
+                            ))}
+                          </div>
+                          <div style={{ border: '1px solid rgba(102,182,255,0.18)', borderRadius: 8, overflow: 'hidden' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 0.8fr', gap: 10, padding: '8px 10px', background: 'rgba(255,255,255,0.04)', fontSize: 12 }}>
+                              <strong>ID</strong>
+                              <strong>Naam</strong>
+                              <strong>Status</strong>
+                            </div>
+                            {pageRows.map((row) => (
+                              <div key={`${opt.key}-${row.lookup_id}`} style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 0.8fr', gap: 10, padding: '8px 10px', borderTop: '1px solid rgba(102,182,255,0.12)' }}>
+                                <span>{row.lookup_id}</span>
+                                <span>{row.display_name}</span>
+                                <span className="targeting-op-soft">{row.source}</span>
+                              </div>
+                            ))}
+                            {pageRows.length === 0 && (
+                              <div style={{ padding: '8px 10px', borderTop: '1px solid rgba(102,182,255,0.12)' }}>
+                                Geen resultaten voor deze filter.
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
+                            <button
+                              type="button"
+                              className="targeting-chip"
+                              disabled={currentPage <= 1}
+                              onClick={() => setPageByType(prev => ({ ...prev, [opt.key]: Math.max(1, currentPage - 1) }))}
+                            >
+                              Vorige
+                            </button>
+                            <span style={{ fontSize: 13 }}>
+                              Pagina {currentPage} / {totalPages} · {filteredRows.length} resultaten
+                            </span>
+                            <button
+                              type="button"
+                              className="targeting-chip"
+                              disabled={currentPage >= totalPages}
+                              onClick={() => setPageByType(prev => ({ ...prev, [opt.key]: Math.min(totalPages, currentPage + 1) }))}
+                            >
+                              Volgende
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                 })}
