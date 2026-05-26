@@ -135,15 +135,19 @@ export default function AccountDetail() {
     }
   }, [syncJob?.id, loadData])
 
-  const startLiveSync = async () => {
+  const startLiveSync = async (mode = 'delta') => {
     setSyncMsg('')
     setSyncBusy(true)
     try {
-      const res = await fetch(`${API}/api/linkedin-ads/sync/live/account/${id}`, { method: 'POST' })
+      const res = await fetch(`${API}/api/linkedin-ads/sync/live/account/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode }),
+      })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Live sync starten mislukt.')
-      setSyncJob({ id: data.job_id, status: data.status })
-      setSyncMsg('Live sync gestart...')
+      setSyncJob({ id: data.job_id, status: data.status, mode: data.mode || mode })
+      setSyncMsg(mode === 'backfill' ? 'Backfill sync gestart...' : 'Delta sync gestart...')
     } catch (e) {
       setSyncBusy(false)
       setSyncMsg(e.message || 'Live sync starten mislukt.')
@@ -266,15 +270,19 @@ export default function AccountDetail() {
             <select value={dateFilter} onChange={e => setDateFilter(e.target.value)} className="zenith-period-select">
               {periodOptions.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
             </select>
-            <button className="add-btn" onClick={startLiveSync} disabled={syncBusy}>
-              {syncBusy ? 'Live sync bezig...' : 'Live sync account'}
+            <button className="add-btn" onClick={() => startLiveSync('delta')} disabled={syncBusy}>
+              {syncBusy ? 'Live sync bezig...' : 'Delta sync'}
+            </button>
+            <button className="add-btn" onClick={() => startLiveSync('backfill')} disabled={syncBusy}>
+              {syncBusy ? 'Live sync bezig...' : 'Backfill all'}
             </button>
           </div>
         </div>
         {syncMsg && <div className={syncJob?.status === 'failed' ? 'form-msg form-error' : 'form-msg'}>{syncMsg}</div>}
         {syncJob?.progress && (
           <div className="form-msg" style={{ marginTop: -6 }}>
-            Stage: {syncJob.stage}
+            Mode: {syncJob.mode || 'delta'}
+            {' · '}Stage: {syncJob.stage}
             {' · '}Paginas: {syncJob.progress.campaign_pages_loaded || 0}
             {' · '}Campagnes ingeladen: {syncJob.progress.campaigns_synced || 0}
             {' · '}Campagnes verwerkt: {syncJob.progress.campaigns_done || 0}/{syncJob.progress.campaigns_total || 0}
