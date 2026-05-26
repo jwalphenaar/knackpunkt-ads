@@ -874,11 +874,19 @@ const resolveGroup = async (type, endpoint, items) => {
                 .slice(0, 20)
                 .map((d, i) => {
                   const cid = d.pivot_value.split(':').pop()
+                  const companyName = resolveLabel('MEMBER_COMPANY', d.pivot_value)
                   return (
                     <tr key={i}>
                       <td>
-                        <a href={`https://www.linkedin.com/company/${cid}`} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
-                          {resolveLabel('MEMBER_COMPANY', d.pivot_value)}
+                        <div className="demo-company-name">{companyName}</div>
+                        <a
+                          href={`https://www.linkedin.com/company/${cid}/`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="demo-company-id-link"
+                          title={`Open LinkedIn company ${cid}`}
+                        >
+                          ID: {cid}
                         </a>
                       </td>
                       <td className="demo-val">{fmt(d.impressions)}</td>
