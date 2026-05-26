@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -14,6 +14,7 @@ const STATUS_COLORS = {
   DRAFT: '#a855f7',
   ACCOUNT_END_DATE_HOLD: '#f97316',
 }
+const API = import.meta.env.VITE_API_URL
 
 export default function AccountDetail() {
   const { id } = useParams()
@@ -24,6 +25,9 @@ export default function AccountDetail() {
   const [analytics, setAnalytics] = useState([])
   const [error, setError] = useState('')
   const [dateFilter, setDateFilter] = useState('this_month')
+  const [syncJob, setSyncJob] = useState(null)
+  const [syncBusy, setSyncBusy] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
 
   const periodOptions = [
     ['this_month', 'Deze maand'],
@@ -35,66 +39,117 @@ export default function AccountDetail() {
     ['all', 'Alles'],
   ]
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      setError('')
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    setError('')
 
-      const { data: acc, error: accError } = await supabase
-        .from('linkedin_ad_accounts')
-        .select('*')
-        .eq('id', id)
-        .single()
+    const { data: acc, error: accError } = await supabase
+      .from('linkedin_ad_accounts')
+      .select('*')
+      .eq('id', id)
+      .single()
 
-      if (accError || !acc) {
-        setError(accError?.message || 'Account niet gevonden.')
-        setLoading(false)
-        return
-      }
-
-      setAccount(acc)
-
-      const { data: campData, error: campError } = await supabase
-        .from('linkedin_ad_campaigns')
-        .select('id, name, status, last_modified_at')
-        .eq('account_id', id)
-        .order('last_modified_at', { ascending: false })
-
-      if (campError) {
-        setError(campError.message)
-        setCampaigns([])
-        setAnalytics([])
-        setLoading(false)
-        return
-      }
-
-      const allCampaigns = campData || []
-      setCampaigns(allCampaigns)
-
-      if (allCampaigns.length === 0) {
-        setAnalytics([])
-        setLoading(false)
-        return
-      }
-
-      const campaignIds = allCampaigns.map(c => c.id)
-      const { data: analyticsData, error: analyticsError } = await supabase
-        .from('linkedin_ad_analytics')
-        .select('campaign_id, date_start, impressions, clicks, cost_in_local_currency, one_click_leads, one_click_lead_form_opens, video_views, landing_page_clicks, external_website_conversions, total_engagements, approximate_member_reach')
-        .in('campaign_id', campaignIds)
-
-      if (analyticsError) {
-        setError(analyticsError.message)
-        setAnalytics([])
-      } else {
-        setAnalytics(analyticsData || [])
-      }
-
+    if (accError || !acc) {
+      setError(accError?.message || 'Account niet gevonden.')
       setLoading(false)
+      return
     }
 
-    load()
+    setAccount(acc)
+
+    const { data: campData, error: campError } = await supabase
+      .from('linkedin_ad_campaigns')
+      .select('id, name, status, last_modified_at')
+      .eq('account_id', id)
+      .order('last_modified_at', { ascending: false })
+
+    if (campError) {
+      setError(campError.message)
+      setCampaigns([])
+      setAnalytics([])
+      setLoading(false)
+      return
+    }
+
+    const allCampaigns = campData || []
+    setCampaigns(allCampaigns)
+
+    if (allCampaigns.length === 0) {
+      setAnalytics([])
+      setLoading(false)
+      return
+    }
+
+    const campaignIds = allCampaigns.map(c => c.id)
+    const { data: analyticsData, error: analyticsError } = await supabase
+      .from('linkedin_ad_analytics')
+      .select('campaign_id, date_start, impressions, clicks, cost_in_local_currency, one_click_leads, one_click_lead_form_opens, video_views, landing_page_clicks, external_website_conversions, total_engagements, approximate_member_reach')
+      .in('campaign_id', campaignIds)
+
+    if (analyticsError) {
+      setError(analyticsError.message)
+      setAnalytics([])
+    } else {
+      setAnalytics(analyticsData || [])
+    }
+
+    setLoading(false)
   }, [id])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    if (!syncJob?.id) return
+    let timer = null
+    let cancelled = false
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API}/api/linkedin-ads/sync/live/status/${syncJob.id}`)
+        const data = await res.json()
+        if (cancelled) return
+        setSyncJob(data)
+        if (data.status === 'done' || data.status === 'done_with_errors' || data.status === 'failed') {
+          setSyncBusy(false)
+          if (data.status === 'done') setSyncMsg('Live sync voltooid.')
+          if (data.status === 'done_with_errors') setSyncMsg('Live sync klaar met fouten.')
+          if (data.status === 'failed') setSyncMsg(data.error || 'Live sync mislukt.')
+          await loadData()
+          return
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setSyncBusy(false)
+          setSyncMsg(e.message || 'Sync status ophalen mislukt.')
+        }
+        return
+      }
+      if (!cancelled) timer = setTimeout(poll, 2000)
+    }
+
+    poll()
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [syncJob?.id, loadData])
+
+  const startLiveSync = async () => {
+    setSyncMsg('')
+    setSyncBusy(true)
+    try {
+      const res = await fetch(`${API}/api/linkedin-ads/sync/live/account/${id}`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Live sync starten mislukt.')
+      setSyncJob({ id: data.job_id, status: data.status })
+      setSyncMsg('Live sync gestart...')
+    } catch (e) {
+      setSyncBusy(false)
+      setSyncMsg(e.message || 'Live sync starten mislukt.')
+    }
+  }
 
   const getDateRange = (filter) => {
     const now = new Date()
@@ -212,8 +267,17 @@ export default function AccountDetail() {
             <select value={dateFilter} onChange={e => setDateFilter(e.target.value)} className="zenith-period-select">
               {periodOptions.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
             </select>
+            <button className="add-btn" onClick={startLiveSync} disabled={syncBusy}>
+              {syncBusy ? 'Live sync bezig...' : 'Live sync account'}
+            </button>
           </div>
         </div>
+        {syncMsg && <div className={syncJob?.status === 'failed' ? 'form-msg form-error' : 'form-msg'}>{syncMsg}</div>}
+        {syncJob?.progress && (
+          <div className="form-msg" style={{ marginTop: -6 }}>
+            Stage: {syncJob.stage} · Campagnes: {syncJob.progress.campaigns_done || 0}/{syncJob.progress.campaigns_total || 0} · Analytics rows: {syncJob.progress.analytics_rows_synced || 0} · Demo rows: {syncJob.progress.demographics_rows_synced || 0}
+          </div>
+        )}
 
         <div className="zenith-header">
           <div className="zenith-eyebrow">Knackpunkt Ads</div>

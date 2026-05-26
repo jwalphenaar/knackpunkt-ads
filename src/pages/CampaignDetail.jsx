@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
@@ -89,6 +89,9 @@ export default function CampaignDetail() {
   const [creativesCount, setCreativesCount] = useState(null)
   const [creatives, setCreatives] = useState([])
   const [showTargeting, setShowTargeting] = useState(false)
+  const [syncJob, setSyncJob] = useState(null)
+  const [syncBusy, setSyncBusy] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
 
 const resolveGroup = async (type, endpoint, items) => {
   if (!items || items.length === 0) return
@@ -104,46 +107,103 @@ const resolveGroup = async (type, endpoint, items) => {
   } catch (e) {}
 }
 
-  useEffect(() => {
-    Promise.all([
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    const [{ data: camp }, { data: an }, { data: demo }] = await Promise.all([
       supabase.from('linkedin_ad_campaigns').select('*').eq('id', id).single(),
       supabase.from('linkedin_ad_analytics').select('*').eq('campaign_id', id).order('date_start', { ascending: true }),
       supabase.from('linkedin_ad_demographics').select('*').eq('campaign_id', id).limit(15000),
-    ]).then(async ([{ data: camp }, { data: an }, { data: demo }]) => {
-      setCampaign(camp)
-      setAnalytics(an || [])
+    ])
 
-      const grouped = {}
-      for (const row of (demo || [])) {
-        if (!grouped[row.pivot_type]) grouped[row.pivot_type] = []
-        grouped[row.pivot_type].push(row)
-      }
-      setDemographics(grouped)
+    setCampaign(camp)
+    setAnalytics(an || [])
 
-      if (camp?.account_id) {
-        const { data: acc } = await supabase.from('linkedin_ad_accounts').select('name').eq('id', camp.account_id).single()
-        setAccount(acc)
-      }
+    const grouped = {}
+    for (const row of (demo || [])) {
+      if (!grouped[row.pivot_type]) grouped[row.pivot_type] = []
+      grouped[row.pivot_type].push(row)
+    }
+    setDemographics(grouped)
 
-      setLoading(false)
+    if (camp?.account_id) {
+      const { data: acc } = await supabase.from('linkedin_ad_accounts').select('name').eq('id', camp.account_id).single()
+      setAccount(acc)
+    }
 
-fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
-  .then(r => r.json())
-  .then(d => { 
-    console.log('creatives:', d)
-    setCreativesCount(d.count)
-    setCreatives(d.creatives || []) 
-  })
-  .catch(e => console.error('creatives error:', e))
+    try {
+      const r = await fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
+      const d = await r.json()
+      setCreativesCount(d.count)
+      setCreatives(d.creatives || [])
+    } catch {
+      setCreativesCount(null)
+      setCreatives([])
+    }
 
-      // Resolve URN labels op de achtergrond
-      resolveGroup('MEMBER_JOB_TITLE', 'titles', grouped.MEMBER_JOB_TITLE)
-      resolveGroup('MEMBER_INDUSTRY', 'industries', grouped.MEMBER_INDUSTRY)
-      resolveGroup('MEMBER_COMPANY', 'companies', grouped.MEMBER_COMPANY)
-      resolveGroup('MEMBER_COUNTRY', 'geo', grouped.MEMBER_COUNTRY)
-      resolveGroup('MEMBER_REGION', 'geo', grouped.MEMBER_REGION)
-    })
+    // Resolve URN labels op de achtergrond
+    resolveGroup('MEMBER_JOB_TITLE', 'titles', grouped.MEMBER_JOB_TITLE)
+    resolveGroup('MEMBER_INDUSTRY', 'industries', grouped.MEMBER_INDUSTRY)
+    resolveGroup('MEMBER_COMPANY', 'companies', grouped.MEMBER_COMPANY)
+    resolveGroup('MEMBER_COUNTRY', 'geo', grouped.MEMBER_COUNTRY)
+    resolveGroup('MEMBER_REGION', 'geo', grouped.MEMBER_REGION)
+
+    setLoading(false)
   }, [id])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    if (!syncJob?.id) return
+    let timer = null
+    let cancelled = false
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API}/api/linkedin-ads/sync/live/status/${syncJob.id}`)
+        const data = await res.json()
+        if (cancelled) return
+        setSyncJob(data)
+        if (data.status === 'done' || data.status === 'done_with_errors' || data.status === 'failed') {
+          setSyncBusy(false)
+          if (data.status === 'done') setSyncMsg('Live sync campagne voltooid.')
+          if (data.status === 'done_with_errors') setSyncMsg('Live sync campagne klaar met fouten.')
+          if (data.status === 'failed') setSyncMsg(data.error || 'Live sync campagne mislukt.')
+          await loadData()
+          return
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setSyncBusy(false)
+          setSyncMsg(e.message || 'Sync status ophalen mislukt.')
+        }
+        return
+      }
+      if (!cancelled) timer = setTimeout(poll, 2000)
+    }
+
+    poll()
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [syncJob?.id, loadData])
+
+  const startLiveSyncCampaign = async () => {
+    setSyncMsg('')
+    setSyncBusy(true)
+    try {
+      const res = await fetch(`${API}/api/linkedin-ads/sync/live/campaign/${id}`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Live sync campagne starten mislukt.')
+      setSyncJob({ id: data.job_id, status: data.status })
+      setSyncMsg('Live sync campagne gestart...')
+    } catch (e) {
+      setSyncBusy(false)
+      setSyncMsg(e.message || 'Live sync campagne starten mislukt.')
+    }
+  }
 
   useEffect(() => {
     const tc = campaign?.targeting_criteria
@@ -475,6 +535,17 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
             {campaign.type && <span className="meta-tag">{campaign.type}</span>}
             {campaign.locale_language && <span className="meta-tag">{campaign.locale_language}-{campaign.locale_country}</span>}
           </div>
+          <div style={{ marginTop: 14, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="add-btn" onClick={startLiveSyncCampaign} disabled={syncBusy}>
+              {syncBusy ? 'Live sync bezig...' : 'Live sync campagne'}
+            </button>
+            {syncMsg && <span style={{ fontSize: 13, opacity: 0.92 }}>{syncMsg}</span>}
+          </div>
+          {syncJob?.progress && (
+            <div style={{ marginTop: 8, fontSize: 12, opacity: 0.85 }}>
+              Stage: {syncJob.stage} · Analytics rows: {syncJob.progress.analytics_rows_synced || 0} · Demo rows: {syncJob.progress.demographics_rows_synced || 0}
+            </div>
+          )}
         </div>
       </div>
 
