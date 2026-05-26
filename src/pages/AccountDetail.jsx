@@ -98,16 +98,17 @@ export default function AccountDetail() {
 
   const getDateRange = (filter) => {
     const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const startOfYear = new Date(now.getFullYear(), 0, 1)
     const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3
     const startOfQuarter = new Date(now.getFullYear(), quarterStartMonth, 1)
 
     if (filter === 'all') return [null, null]
-    if (filter === 'this_month') return [startOfMonth, today]
-    if (filter === 'year_to_date') return [startOfYear, today]
-    if (filter === 'quarter_to_date') return [startOfQuarter, today]
+    if (filter === 'this_month') return [startOfMonth, todayEnd]
+    if (filter === 'year_to_date') return [startOfYear, todayEnd]
+    if (filter === 'quarter_to_date') return [startOfQuarter, todayEnd]
 
     if (filter === 'last_month') {
       const start = new Date(now.getFullYear(), now.getMonth() - 1, 1)
@@ -122,8 +123,8 @@ export default function AccountDetail() {
     }
 
     if (filter === 'last_12_months') {
-      const start = new Date(now.getFullYear(), now.getMonth() - 12, now.getDate())
-      return [start, today]
+      const start = new Date(now.getFullYear(), now.getMonth() - 12, now.getDate(), 0, 0, 0, 0)
+      return [start, todayEnd]
     }
 
     return [null, null]
@@ -135,7 +136,10 @@ export default function AccountDetail() {
 
     return analytics.filter(row => {
       if (!row.date_start) return false
-      const d = new Date(row.date_start)
+      const normalized = String(row.date_start).includes('T')
+        ? new Date(row.date_start)
+        : new Date(`${row.date_start}T12:00:00`)
+      const d = normalized
       return d >= start && d <= end
     })
   }, [analytics, dateFilter])
@@ -166,13 +170,13 @@ export default function AccountDetail() {
     }
 
     return campaigns
-      .filter(c => (c.status || '').toUpperCase() === 'ACTIVE')
       .map(c => ({
         id: c.id,
         name: c.name,
         status: c.status,
         ...perCampaign[c.id],
       }))
+      .filter(c => (c.impressions || 0) > 0 || (c.clicks || 0) > 0 || (c.cost || 0) > 0 || (c.leads || 0) > 0)
       .sort((a, b) => (b.impressions || 0) - (a.impressions || 0))
   }, [filteredAnalytics, campaigns])
 
@@ -209,7 +213,7 @@ export default function AccountDetail() {
         </div>
 
         <div className="zenith-header">
-          <div className="zenith-eyebrow">Zenith Protocol Active</div>
+          <div className="zenith-eyebrow">Knackpunkt Ads</div>
           <h1 className="zenith-title">Performance Overview</h1>
         </div>
 
