@@ -290,6 +290,12 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     }
     if (typeof value !== 'string') return String(value)
 
+    const strippedFacet = value
+      .replace(/^(and|or):\s*/i, '')
+      .replace(/^urn:li:adTargetingFacet:[a-zA-Z]+:\s*/i, '')
+      .trim()
+    if (strippedFacet !== value) return humanizeTargetingValue(strippedFacet)
+
     const raw = value.includes(':') ? value.split(':').pop() : value
     if (value.startsWith('urn:li:title:') && targetingResolved.titles[raw]) return targetingResolved.titles[raw]
     if (value.startsWith('urn:li:industry:') && targetingResolved.industries[raw]) return targetingResolved.industries[raw]
@@ -332,34 +338,38 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     })
   }
 
+  const renderParsedGroups = (groups) => (
+    <div className="targeting-groups">
+      {groups.map((group, idx) => {
+        const shown = group.values.slice(0, 18)
+        const hiddenCount = group.values.length - shown.length
+        return (
+          <div key={idx} className="targeting-group">
+            <div className="targeting-group-head">
+              {group.operator && <span className="targeting-op">{group.operator}</span>}
+              <span className="targeting-facet">{TARGETING_FACET_LABELS[group.facet] || group.facet || 'Waarde'}</span>
+            </div>
+            <div className="targeting-chips">
+              {shown.map((v, i) => <span key={`${idx}-${i}`} className="targeting-chip">{v}</span>)}
+              {hiddenCount > 0 && <span className="targeting-chip targeting-chip-more">+{hiddenCount} meer</span>}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+
   const renderTargetingValue = (value) => {
     if (typeof value === 'string') {
       const parsed = parseFacetString(value)
       if (parsed.length > 0) {
-        return (
-          <div className="targeting-groups">
-            {parsed.map((group, idx) => {
-              const shown = group.values.slice(0, 18)
-              const hiddenCount = group.values.length - shown.length
-              return (
-                <div key={idx} className="targeting-group">
-                  <div className="targeting-group-head">
-                    {group.operator && <span className="targeting-op">{group.operator}</span>}
-                    <span className="targeting-facet">{TARGETING_FACET_LABELS[group.facet] || group.facet || 'Waarde'}</span>
-                  </div>
-                  <div className="targeting-chips">
-                    {shown.map((v, i) => <span key={`${idx}-${i}`} className="targeting-chip">{v}</span>)}
-                    {hiddenCount > 0 && <span className="targeting-chip targeting-chip-more">+{hiddenCount} meer</span>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )
+        return renderParsedGroups(parsed)
       }
       return <span>{humanizeTargetingValue(value)}</span>
     }
     if (Array.isArray(value)) {
+      const parsed = value.flatMap(v => (typeof v === 'string' ? parseFacetString(v) : []))
+      if (parsed.length > 0) return renderParsedGroups(parsed)
       return (
         <div className="targeting-chips">
           {value.map((v, i) => <span key={i} className="targeting-chip">{humanizeTargetingValue(v)}</span>)}
