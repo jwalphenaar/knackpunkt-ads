@@ -173,7 +173,7 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
       if (!id) continue
       if (type === 'title') idsByType.titles.push(id)
       if (type === 'industry') idsByType.industries.push(id)
-      if (type === 'company') idsByType.companies.push(id)
+      if (type === 'company' || type === 'organization') idsByType.companies.push(id)
       if (type === 'geo') idsByType.geo.push(id)
     }
 
@@ -299,13 +299,25 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     const raw = value.includes(':') ? value.split(':').pop() : value
     if (value.startsWith('urn:li:title:') && targetingResolved.titles[raw]) return targetingResolved.titles[raw]
     if (value.startsWith('urn:li:industry:') && targetingResolved.industries[raw]) return targetingResolved.industries[raw]
-    if (value.startsWith('urn:li:company:') && targetingResolved.companies[raw]) return targetingResolved.companies[raw]
+    if ((value.startsWith('urn:li:company:') || value.startsWith('urn:li:organization:')) && targetingResolved.companies[raw]) return targetingResolved.companies[raw]
     if (value.startsWith('urn:li:geo:') && targetingResolved.geo[raw]) return targetingResolved.geo[raw]
     if (SENIORITY_MAP[raw]) return SENIORITY_MAP[raw]
     if (COMPANY_SIZE_MAP[raw]) return COMPANY_SIZE_MAP[raw]
 
     if (raw.startsWith('urn')) return raw
     return raw.replaceAll('_', ' ').toLowerCase()
+  }
+
+  const humanizeByFacet = (facet, v) => {
+    const human = humanizeTargetingValue(v)
+    if (human !== v) return human
+    if ((facet === 'employers' || facet === 'companies') && targetingResolved.companies[String(v)]) {
+      return targetingResolved.companies[String(v)]
+    }
+    if (facet === 'titles' && targetingResolved.titles[String(v)]) return targetingResolved.titles[String(v)]
+    if (facet === 'industries' && targetingResolved.industries[String(v)]) return targetingResolved.industries[String(v)]
+    if ((facet === 'locations' || facet === 'geoLocations') && targetingResolved.geo[String(v)]) return targetingResolved.geo[String(v)]
+    return human
   }
 
   const parseFacetString = (input) => {
@@ -323,7 +335,7 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
         .map(v => v.trim())
         .filter(Boolean)
         .map(v => v.replace(/^urn:li:adTargetingFacet:[a-zA-Z]+:\s*/i, '').trim())
-        .map(v => humanizeTargetingValue(v))
+        .map(v => humanizeByFacet(facet, v))
       groups.push({ operator, facet, values })
     }
 
@@ -370,6 +382,22 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     if (Array.isArray(value)) {
       const parsed = value.flatMap(v => (typeof v === 'string' ? parseFacetString(v) : []))
       if (parsed.length > 0) return renderParsedGroups(parsed)
+      const flattenedGroups = value
+        .filter(v => v && typeof v === 'object' && !Array.isArray(v))
+        .flatMap(v => Object.entries(v))
+        .map(([k, v]) => {
+          const match = k.match(/^urn:li:adTargetingFacet:([a-zA-Z]+)$/)
+          if (!match) return null
+          const facet = match[1]
+          const list = Array.isArray(v) ? v : [v]
+          return {
+            operator: null,
+            facet,
+            values: list.map(item => humanizeByFacet(facet, item)),
+          }
+        })
+        .filter(Boolean)
+      if (flattenedGroups.length > 0) return renderParsedGroups(flattenedGroups)
       return (
         <div className="targeting-chips">
           {value.map((v, i) => <span key={i} className="targeting-chip">{humanizeTargetingValue(v)}</span>)}
@@ -377,6 +405,19 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
       )
     }
     if (value && typeof value === 'object') {
+      const facetEntries = Object.entries(value).filter(([k]) => /^urn:li:adTargetingFacet:[a-zA-Z]+$/.test(k))
+      if (facetEntries.length > 0) {
+        const groups = facetEntries.map(([k, v]) => {
+          const facet = k.replace('urn:li:adTargetingFacet:', '')
+          const list = Array.isArray(v) ? v : [v]
+          return {
+            operator: null,
+            facet,
+            values: list.map(item => humanizeByFacet(facet, item)),
+          }
+        })
+        return renderParsedGroups(groups)
+      }
       return (
         <div className="targeting-groups">
           {Object.entries(value).map(([k, v]) => (
