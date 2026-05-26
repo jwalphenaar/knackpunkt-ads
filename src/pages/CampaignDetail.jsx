@@ -20,6 +20,23 @@ const COMPANY_SIZE_MAP = {
 
 const SIZE_ORDER = ['SIZE_1','SIZE_2_TO_10','SIZE_11_TO_50','SIZE_51_TO_200','SIZE_201_TO_500','SIZE_501_TO_1000','SIZE_1001_TO_5000','SIZE_5001_TO_10000','SIZE_10001_OR_MORE']
 const COLORS = ['#0077b5','#00a0dc','#f59e0b','#22c55e','#ef4444','#a855f7','#f97316','#06b6d4','#84cc16','#ec4899']
+const TARGETING_KEY_LABELS = {
+  include: 'Include',
+  exclude: 'Exclude',
+  facets: 'Facets',
+  locations: 'Locations',
+  geoLocations: 'Geolocaties',
+  languages: 'Talen',
+  seniorities: 'Seniority',
+  jobFunctions: 'Functies',
+  skills: 'Skills',
+  interests: 'Interesses',
+  industries: 'Industrieën',
+  companySizes: 'Bedrijfsgroottes',
+  companies: 'Bedrijven',
+  titles: 'Functietitels',
+  school: 'Scholen',
+}
 
 const heatColor = (value, allValues) => {
   if (!value || allValues.every(v => !v)) return {}
@@ -195,6 +212,27 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     ? Object.entries(campaign.targeting_criteria)
     : []
 
+  const humanizeTargetingValue = (value) => {
+    if (Array.isArray(value)) {
+      return value.map(v => humanizeTargetingValue(v)).join(', ')
+    }
+    if (value && typeof value === 'object') {
+      const objEntries = Object.entries(value)
+      if (objEntries.length === 0) return '—'
+      return objEntries
+        .map(([k, v]) => `${TARGETING_KEY_LABELS[k] || k}: ${humanizeTargetingValue(v)}`)
+        .join(' | ')
+    }
+    if (typeof value !== 'string') return String(value)
+
+    const raw = value.includes(':') ? value.split(':').pop() : value
+    if (SENIORITY_MAP[raw]) return SENIORITY_MAP[raw]
+    if (COMPANY_SIZE_MAP[raw]) return COMPANY_SIZE_MAP[raw]
+
+    if (raw.startsWith('urn')) return raw
+    return raw.replaceAll('_', ' ').toLowerCase()
+  }
+
   return (
     <div className="campaign-detail-page">
       <button className="back-btn" onClick={() => navigate('/campaigns')}>← Back</button>
@@ -280,7 +318,7 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
             <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
               {targetingEntries.map(([key, value]) => (
                 <li key={key}>
-                  <strong>{key}</strong>: {typeof value === 'string' ? value : JSON.stringify(value)}
+                  <strong>{TARGETING_KEY_LABELS[key] || key}</strong>: {humanizeTargetingValue(value)}
                 </li>
               ))}
             </ul>
