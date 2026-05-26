@@ -317,6 +317,24 @@ const resolveGroup = async (type, endpoint, items) => {
     return 0
   })
 
+  const filteredDemographics = Object.fromEntries(
+    Object.entries(demographics).map(([pivot, rows]) => {
+      const scopedRows = (rows || []).filter((row) => {
+        if (dateFilter === 'all') return true
+        const d = row?.date_start ? new Date(row.date_start) : null
+        if (!d || Number.isNaN(d.getTime())) return false
+        if (dateFilter === 'custom') {
+          if (!customStart || !customEnd) return true
+          return d >= new Date(customStart) && d <= new Date(customEnd)
+        }
+        const [start, end] = getDateRange()
+        if (!start) return true
+        return d >= start && d <= end
+      })
+      return [pivot, scopedRows]
+    })
+  )
+
   const totals = filteredAnalytics.reduce((acc, row) => {
     acc.impressions += row.impressions || 0
     acc.clicks += row.clicks || 0
@@ -764,17 +782,20 @@ const resolveGroup = async (type, endpoint, items) => {
         </table>
       </div>
 
-{Object.keys(demographics).length > 0 && (
+{Object.values(filteredDemographics).some(rows => (rows || []).length > 0) && (
   <div className="demo-section">
     <h2 className="section-title">Audience insights</h2>
+    <div className="subtitle" style={{ marginBottom: 10 }}>
+      Let op: bedrijfsnamen kunnen internationaal zijn; dit is geen landfilter op bedrijfs-HQ.
+    </div>
     <div className="demo-grid">
 
-      {demographics.MEMBER_SENIORITY && (
+      {filteredDemographics.MEMBER_SENIORITY?.length > 0 && (
         <div className="demo-card">
           <h3>Seniority level</h3>
           <table className="demo-table">
             <tbody>
-              {demographics.MEMBER_SENIORITY
+              {filteredDemographics.MEMBER_SENIORITY
                 .sort((a,b) => b.impressions - a.impressions)
                 .map((d, i) => (
                   <tr key={i}>
@@ -787,12 +808,12 @@ const resolveGroup = async (type, endpoint, items) => {
         </div>
       )}
 
-      {demographics.MEMBER_COMPANY_SIZE && (
+      {filteredDemographics.MEMBER_COMPANY_SIZE?.length > 0 && (
         <div className="demo-card">
           <h3>Company size</h3>
           <table className="demo-table">
             <tbody>
-              {demographics.MEMBER_COMPANY_SIZE
+              {filteredDemographics.MEMBER_COMPANY_SIZE
                 .sort((a,b) => SIZE_ORDER.indexOf(a.pivot_value.split(':').pop()) - SIZE_ORDER.indexOf(b.pivot_value.split(':').pop()))
                 .map((d, i) => (
                   <tr key={i}>
@@ -805,12 +826,12 @@ const resolveGroup = async (type, endpoint, items) => {
         </div>
       )}
 
-      {demographics.MEMBER_INDUSTRY && (
+      {filteredDemographics.MEMBER_INDUSTRY?.length > 0 && (
         <div className="demo-card">
           <h3>Top 20 industries</h3>
           <table className="demo-table">
             <tbody>
-              {demographics.MEMBER_INDUSTRY
+              {filteredDemographics.MEMBER_INDUSTRY
                 .sort((a,b) => b.impressions - a.impressions)
                 .slice(0, 20)
                 .map((d, i) => (
@@ -824,12 +845,12 @@ const resolveGroup = async (type, endpoint, items) => {
         </div>
       )}
 
-      {demographics.MEMBER_JOB_TITLE && (
+      {filteredDemographics.MEMBER_JOB_TITLE?.length > 0 && (
         <div className="demo-card">
           <h3>Top 20 job titles</h3>
           <table className="demo-table">
             <tbody>
-              {demographics.MEMBER_JOB_TITLE
+              {filteredDemographics.MEMBER_JOB_TITLE
                 .sort((a,b) => b.impressions - a.impressions)
                 .slice(0, 20)
                 .map((d, i) => (
@@ -843,12 +864,12 @@ const resolveGroup = async (type, endpoint, items) => {
         </div>
       )}
 
-      {demographics.MEMBER_COMPANY && (
+      {filteredDemographics.MEMBER_COMPANY?.length > 0 && (
         <div className="demo-card">
           <h3>Top 20 companies</h3>
           <table className="demo-table">
             <tbody>
-              {demographics.MEMBER_COMPANY
+              {filteredDemographics.MEMBER_COMPANY
                 .sort((a,b) => b.impressions - a.impressions)
                 .slice(0, 20)
                 .map((d, i) => {
@@ -869,12 +890,12 @@ const resolveGroup = async (type, endpoint, items) => {
         </div>
       )}
 
-      {demographics.MEMBER_COUNTRY && (
+      {filteredDemographics.MEMBER_COUNTRY?.length > 0 && (
         <div className="demo-card">
           <h3>Top 20 countries</h3>
           <table className="demo-table">
             <tbody>
-              {demographics.MEMBER_COUNTRY
+              {filteredDemographics.MEMBER_COUNTRY
                 .sort((a,b) => b.impressions - a.impressions)
                 .slice(0, 20)
                 .map((d, i) => (
@@ -888,12 +909,12 @@ const resolveGroup = async (type, endpoint, items) => {
         </div>
       )}
 
-      {demographics.MEMBER_REGION && (
+      {filteredDemographics.MEMBER_REGION?.length > 0 && (
         <div className="demo-card">
           <h3>Top 20 regions</h3>
           <table className="demo-table">
             <tbody>
-              {demographics.MEMBER_REGION
+              {filteredDemographics.MEMBER_REGION
                 .sort((a,b) => b.impressions - a.impressions)
                 .slice(0, 20)
                 .map((d, i) => (
