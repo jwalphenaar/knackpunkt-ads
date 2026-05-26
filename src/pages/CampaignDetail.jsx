@@ -304,23 +304,30 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
 
   const parseFacetString = (input) => {
     if (typeof input !== 'string') return []
-    const chunks = input.split('|').map(s => s.trim()).filter(Boolean)
+    const normalized = input.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim()
+    const regex = /(?:^|\|\s*)(and|or):\s*urn:li:adTargetingFacet:([a-zA-Z]+):\s*([^|]+)/gi
+    const groups = []
+    let match
+    while ((match = regex.exec(normalized)) !== null) {
+      const operator = (match[1] || '').toUpperCase()
+      const facet = match[2]
+      const rawValues = match[3] || ''
+      const values = rawValues
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean)
+        .map(v => v.replace(/^urn:li:adTargetingFacet:[a-zA-Z]+:\s*/i, '').trim())
+        .map(v => humanizeTargetingValue(v))
+      groups.push({ operator, facet, values })
+    }
+
+    if (groups.length > 0) return groups
+
+    const chunks = normalized.split('|').map(s => s.trim()).filter(Boolean)
     return chunks.map(chunk => {
       const m = chunk.match(/^(and|or):\s*(.+)$/i)
       const operator = m ? m[1].toUpperCase() : null
       const core = m ? m[2] : chunk
-
-      const facetMatch = core.match(/urn:li:adTargetingFacet:([a-zA-Z]+):\s*(.+)$/)
-      if (facetMatch) {
-        const facet = facetMatch[1]
-        const values = facetMatch[2]
-          .split(',')
-          .map(v => v.trim())
-          .filter(Boolean)
-          .map(v => humanizeTargetingValue(v))
-        return { operator, facet, values }
-      }
-
       return { operator, facet: null, values: [humanizeTargetingValue(core)] }
     })
   }
