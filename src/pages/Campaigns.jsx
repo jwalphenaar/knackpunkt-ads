@@ -85,7 +85,7 @@ useEffect(() => {
 
   const SortIcon = ({ field }) => {
     if (sortField !== field) return <span style={{ color: '#d1d5db' }}> ↕</span>
-    return <span style={{ color: '#0077b5' }}>{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>
+    return <span style={{ color: '#ff9f66' }}>{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>
   }
 
   if (loading) return <div className="loading">Laden...</div>

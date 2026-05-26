@@ -227,12 +227,12 @@ code {
 
 .zenith-shell { max-width: 1260px; margin: 0 auto; }
 .zenith-back { border-color: #2d3340; color: #c4c9ac; margin-bottom: 14px; }
-.zenith-back:hover { background: rgba(171, 214, 0, 0.08); border-color: rgba(171, 214, 0, 0.35); color: #eaff8f; }
+.zenith-back:hover { background: rgba(255, 127, 58, 0.12); border-color: rgba(255, 127, 58, 0.45); color: #ffd2b6; }
 
 .zenith-topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
 .zenith-account { font-family: "Space Grotesk", Inter, sans-serif; font-size: 38px; font-weight: 700; line-height: 1.1; color: #fff; }
 .zenith-period-select {
-  border: 1px solid rgba(171, 214, 0, 0.25);
+  border: 1px solid rgba(255, 127, 58, 0.35);
   border-radius: 10px;
   background: rgba(25, 28, 34, 0.9);
   color: #c4c9ac;
@@ -247,7 +247,7 @@ code {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 12px;
-  color: #abd600;
+  color: #ff9f66;
   margin-bottom: 8px;
 }
 .zenith-title { font-family: "Space Grotesk", Inter, sans-serif; font-size: 48px; line-height: 1.1; font-weight: 600; color: #fff; margin: 0; }
@@ -261,7 +261,7 @@ code {
 .zenith-card {
   grid-column: span 2;
   background: rgba(20, 25, 35, 0.7);
-  border: 1px solid rgba(171, 214, 0, 0.2);
+  border: 1px solid rgba(255, 127, 58, 0.28);
   border-radius: 16px;
   backdrop-filter: blur(12px);
   padding: 20px;
@@ -282,18 +282,18 @@ code {
   line-height: 1;
   font-weight: 700;
 }
-.zenith-accent { color: #c3f400; }
+.zenith-accent { color: #ff9f66; }
 .zenith-subtle { margin-top: 8px; color: #8e9379; font-size: 12px; }
 .zenith-progress { margin-top: 16px; height: 6px; background: #2c3040; border-radius: 999px; overflow: hidden; }
-.zenith-progress span { display: block; height: 100%; background: #abd600; box-shadow: 0 0 8px rgba(171, 214, 0, 0.8); }
+.zenith-progress span { display: block; height: 100%; background: #ff7f3a; box-shadow: 0 0 8px rgba(255, 127, 58, 0.8); }
 
 .zenith-table-wrap {
   background: rgba(16, 19, 26, 0.85);
-  border: 1px solid rgba(171, 214, 0, 0.22);
+  border: 1px solid rgba(255, 127, 58, 0.28);
   border-radius: 14px;
   overflow: hidden;
 }
-.zenith-table-title { padding: 16px 24px; font-family: "Space Grotesk", Inter, sans-serif; font-size: 28px; color: #fff; border-bottom: 1px solid rgba(171, 214, 0, 0.15); }
+.zenith-table-title { padding: 16px 24px; font-family: "Space Grotesk", Inter, sans-serif; font-size: 28px; color: #fff; border-bottom: 1px solid rgba(255, 127, 58, 0.2); }
 .zenith-table { width: 100%; border-collapse: collapse; }
 .zenith-table th {
   text-align: left;
@@ -307,7 +307,7 @@ code {
 }
 .zenith-table td {
   padding: 18px 24px;
-  border-top: 1px solid rgba(68, 73, 51, 0.45);
+  border-top: 1px solid rgba(255, 127, 58, 0.12);
   color: #e1e2eb;
 }
 .zenith-campaign-name { font-size: 34px; line-height: 1.1; font-family: "Space Grotesk", Inter, sans-serif; color: #fff; }
@@ -316,8 +316,8 @@ code {
   display: inline-flex;
   padding: 5px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(171, 214, 0, 0.45);
-  color: #c3f400;
+  border: 1px solid rgba(255, 127, 58, 0.45);
+  color: #ffb285;
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;
 }
@@ -331,6 +331,54 @@ code {
   cursor: pointer;
 }
 .zenith-action-btn:hover { box-shadow: 0 0 10px rgba(125, 244, 255, 0.45); }
+
+/* App-wide dark + orange theme for Accounts/Campaigns/Campaign detail */
+.content {
+  background: #0b0e14;
+  background-image:
+    linear-gradient(rgba(255, 127, 58, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 127, 58, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.page-title { color: #ffffff; font-family: "Space Grotesk", Inter, sans-serif; }
+.count { background: rgba(255,127,58,0.2); color: #ffb285; border: 1px solid rgba(255,127,58,0.35); }
+.filter-btn {
+  border-color: rgba(255,127,58,0.28);
+  background: rgba(20,25,35,0.7);
+  color: #d3d7e0;
+}
+.filter-btn span { background: rgba(255,127,58,0.16); color: #ffc19d; }
+.filter-btn.active { background: #ff7f3a; border-color: #ff7f3a; color: #1a120c; }
+.table-wrapper,
+.kpi-card,
+.demo-card,
+.info-card,
+.dropdown-filters select,
+.account-form input,
+.account-form select {
+  background: rgba(20,25,35,0.78);
+  border-color: rgba(255,127,58,0.24);
+  color: #e1e2eb;
+}
+.data-table th {
+  background: rgba(34, 20, 14, 0.92);
+  color: #ffcfb1;
+  border-bottom-color: rgba(255,127,58,0.35);
+}
+.data-table td { border-bottom-color: rgba(255,127,58,0.1); color: #e1e2eb; }
+.data-table tr:hover td { background: rgba(255,127,58,0.08); }
+.id-cell { color: #a6adbb; }
+.badge { background: rgba(255,127,58,0.14); color: #ffd3b8; }
+.dropdown-filters select:focus,
+.account-form input:focus,
+.account-form select:focus { border-color: #ff7f3a; }
+.add-btn { border-color: #ff7f3a; background: #ff7f3a; color: #1f130a; }
+.reset-btn { border-color: rgba(255,127,58,0.45); background: rgba(255,127,58,0.12); color: #ffb285; }
+.back-btn { border-color: rgba(255,127,58,0.35); color: #ffbf98; }
+.back-btn:hover { background: rgba(255,127,58,0.12); }
+.detail-hero { background: linear-gradient(135deg, #3a1f12 0%, #7a3a1d 100%); border: 1px solid rgba(255,127,58,0.32); }
+.meta-tag { background: rgba(255,127,58,0.22); }
+.info-card-blue { background: linear-gradient(135deg, #2a1710 0%, #5a2a17 100%) !important; }
 
 @media (max-width: 1400px) {
   .zenith-account { font-size: 32px; }
