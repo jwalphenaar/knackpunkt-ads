@@ -191,7 +191,7 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
   }, { impressions: 0, clicks: 0, cost: 0, leads: 0, lead_opens: 0, conversions: 0, likes: 0, follows: 0, video_views: 0, video_completions: 0, reach: 0, engagements: 0 })
 
   return (
-    <div>
+    <div className="campaign-detail-page">
       <button className="back-btn" onClick={() => navigate('/campaigns')}>← Back</button>
 
       <div className="detail-hero">
@@ -252,7 +252,7 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
         </div>
       </div>
 
-      <div className="kpi-grid">
+      <div className="kpi-grid kpi-grid-primary">
         <div className="kpi-card"><div className="kpi-label">Impressions</div><div className="kpi-value">{fmt(totals.impressions)}</div></div>
         <div className="kpi-card"><div className="kpi-label">Reach</div><div className="kpi-value">{fmt(totals.reach)}</div></div>
         <div className="kpi-card"><div className="kpi-label">Clicks</div><div className="kpi-value">{fmt(totals.clicks)}</div></div>
@@ -261,6 +261,9 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
         <div className="kpi-card"><div className="kpi-label">CPM</div><div className="kpi-value">{totals.impressions > 0 ? eur((totals.cost / totals.impressions) * 1000) : '—'}</div></div>
         <div className="kpi-card"><div className="kpi-label">CPC</div><div className="kpi-value">{totals.clicks > 0 ? eur(totals.cost / totals.clicks) : '—'}</div></div>
         <div className="kpi-card"><div className="kpi-label">Leads</div><div className="kpi-value">{fmt(totals.leads)}</div></div>
+      </div>
+
+      <div className="kpi-grid kpi-grid-secondary">
         <div className="kpi-card"><div className="kpi-label">Lead form opens</div><div className="kpi-value">{fmt(totals.lead_opens)}</div></div>
         <div className="kpi-card"><div className="kpi-label">Conversions</div><div className="kpi-value">{fmt(totals.conversions)}</div></div>
         <div className="kpi-card"><div className="kpi-label">Video views</div><div className="kpi-value">{fmt(totals.video_views)}</div></div>
