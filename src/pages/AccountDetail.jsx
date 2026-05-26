@@ -275,7 +275,11 @@ export default function AccountDetail() {
         {syncMsg && <div className={syncJob?.status === 'failed' ? 'form-msg form-error' : 'form-msg'}>{syncMsg}</div>}
         {syncJob?.progress && (
           <div className="form-msg" style={{ marginTop: -6 }}>
-            Stage: {syncJob.stage} · Campagnes: {syncJob.progress.campaigns_done || 0}/{syncJob.progress.campaigns_total || 0} · Analytics rows: {syncJob.progress.analytics_rows_synced || 0} · Demo rows: {syncJob.progress.demographics_rows_synced || 0}
+            Stage: {syncJob.stage}
+            {' · '}Campagnes ingeladen: {syncJob.progress.campaigns_synced || 0}
+            {' · '}Campagnes verwerkt: {syncJob.progress.campaigns_done || 0}/{syncJob.progress.campaigns_total || 0}
+            {' · '}Analytics rows: {syncJob.progress.analytics_rows_synced || 0}
+            {' · '}Demo rows: {syncJob.progress.demographics_rows_synced || 0}
           </div>
         )}
 
