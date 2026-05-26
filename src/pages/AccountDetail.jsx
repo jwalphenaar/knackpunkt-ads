@@ -80,11 +80,10 @@ export default function AccountDetail() {
       return
     }
 
-    const campaignIds = allCampaigns.map(c => c.id)
     const { data: analyticsData, error: analyticsError } = await supabase
       .from('linkedin_ad_analytics')
       .select('campaign_id, date_start, impressions, clicks, cost_in_local_currency, one_click_leads, one_click_lead_form_opens, video_views, landing_page_clicks, external_website_conversions, total_engagements, approximate_member_reach')
-      .in('campaign_id', campaignIds)
+      .eq('account_id', id)
 
     if (analyticsError) {
       setError(analyticsError.message)
