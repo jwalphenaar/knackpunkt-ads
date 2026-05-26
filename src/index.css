@@ -483,6 +483,13 @@ code {
   border: 1px solid rgba(255,127,58,0.38);
   color: #ffbf98;
 }
+.targeting-op-soft {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(135, 189, 255, 0.32);
+  color: #cde3ff;
+}
 .targeting-facet {
   font-size: 12px;
   font-weight: 600;

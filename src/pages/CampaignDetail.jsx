@@ -336,7 +336,7 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
         .filter(Boolean)
         .map(v => v.replace(/^urn:li:adTargetingFacet:[a-zA-Z]+:\s*/i, '').trim())
         .map(v => humanizeByFacet(facet, v))
-      groups.push({ operator, facet, values })
+      groups.push({ relationOp: null, valueOp: operator || 'OR', facet, values })
     }
 
     if (groups.length > 0) return groups
@@ -346,11 +346,16 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
       const m = chunk.match(/^(and|or):\s*(.+)$/i)
       const operator = m ? m[1].toUpperCase() : null
       const core = m ? m[2] : chunk
-      return { operator, facet: null, values: [humanizeTargetingValue(core)] }
+      return { relationOp: null, valueOp: operator || null, facet: null, values: [humanizeTargetingValue(core)] }
     })
   }
 
-  const collectFacetGroups = (node, inheritedOperator = null) => {
+  const hasFacetEntries = (obj) => {
+    if (!obj || typeof obj !== 'object') return false
+    return Object.keys(obj).some(k => /^urn:li:adTargetingFacet:[a-zA-Z]+$/.test(k))
+  }
+
+  const collectFacetGroups = (node, relationOp = null, valueOp = null) => {
     if (node == null) return []
 
     if (typeof node === 'string') {
@@ -358,7 +363,7 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
     }
 
     if (Array.isArray(node)) {
-      return node.flatMap(item => collectFacetGroups(item, inheritedOperator))
+      return node.flatMap(item => collectFacetGroups(item, relationOp, valueOp))
     }
 
     if (typeof node === 'object') {
@@ -366,7 +371,14 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
       for (const [k, v] of Object.entries(node)) {
         const lower = k.toLowerCase()
         if (lower === 'and' || lower === 'or') {
-          groups.push(...collectFacetGroups(v, lower.toUpperCase()))
+          const op = lower.toUpperCase()
+          if (Array.isArray(v)) {
+            groups.push(...v.flatMap(item => collectFacetGroups(item, op, valueOp)))
+          } else if (v && typeof v === 'object' && hasFacetEntries(v)) {
+            groups.push(...collectFacetGroups(v, relationOp, op))
+          } else {
+            groups.push(...collectFacetGroups(v, op, valueOp))
+          }
           continue
         }
 
@@ -375,14 +387,15 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
           const facet = facetMatch[1]
           const list = Array.isArray(v) ? v : [v]
           groups.push({
-            operator: inheritedOperator,
+            relationOp,
+            valueOp,
             facet,
             values: list.map(item => humanizeByFacet(facet, item)),
           })
           continue
         }
 
-        groups.push(...collectFacetGroups(v, inheritedOperator))
+        groups.push(...collectFacetGroups(v, relationOp, valueOp))
       }
       return groups
     }
@@ -398,8 +411,9 @@ fetch(`${API}/api/linkedin-ads/campaigns/${id}/creatives`)
         return (
           <div key={idx} className="targeting-group">
             <div className="targeting-group-head">
-              {group.operator && <span className="targeting-op">{group.operator}</span>}
+              {group.relationOp && <span className="targeting-op">{group.relationOp}</span>}
               <span className="targeting-facet">{TARGETING_FACET_LABELS[group.facet] || group.facet || 'Waarde'}</span>
+              {group.valueOp === 'OR' && <span className="targeting-op-soft">ANY</span>}
             </div>
             <div className="targeting-chips">
               {shown.map((v, i) => <span key={`${idx}-${i}`} className="targeting-chip">{v}</span>)}
