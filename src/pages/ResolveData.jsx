@@ -20,6 +20,8 @@ export default function ResolveData() {
   const [job, setJob] = useState(null)
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
+  const [seedingIndustries, setSeedingIndustries] = useState(false)
+  const [seedMsg, setSeedMsg] = useState('')
   const [pageByType, setPageByType] = useState({ titles: 1, industries: 1, companies: 1, geo: 1 })
   const [filterByType, setFilterByType] = useState({ titles: 'all', industries: 'all', companies: 'all', geo: 'all' })
 
@@ -59,6 +61,22 @@ export default function ResolveData() {
       setError(e.message)
     } finally {
       setStarting(false)
+    }
+  }
+
+  const seedIndustriesV2 = async () => {
+    setSeedMsg('')
+    setError('')
+    setSeedingIndustries(true)
+    try {
+      const res = await fetch(`${API}/api/linkedin-ads/resolve/industries/seed-v2`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Seed industries mislukt')
+      setSeedMsg(`Industries bijgewerkt: ${data.cached || 0}`)
+    } catch (e) {
+      setError(e.message || 'Seed industries mislukt')
+    } finally {
+      setSeedingIndustries(false)
     }
   }
 
@@ -112,7 +130,17 @@ export default function ResolveData() {
             <button className="add-btn" onClick={startResolve} disabled={starting || (job?.status === 'running')}>
               {starting ? 'Starten...' : (job?.status === 'running' ? 'Bezig...' : 'Start Resolve Job')}
             </button>
+            <button
+              type="button"
+              className="add-btn"
+              onClick={seedIndustriesV2}
+              disabled={seedingIndustries}
+              style={{ marginLeft: 8 }}
+            >
+              {seedingIndustries ? 'Seeding...' : 'Seed Industries V2'}
+            </button>
             {error && <div className="form-msg form-error" style={{ marginTop: 10 }}>{error}</div>}
+            {seedMsg && <div className="form-msg form-success" style={{ marginTop: 10 }}>{seedMsg}</div>}
           </div>
         </div>
 
