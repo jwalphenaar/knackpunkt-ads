@@ -51,6 +51,12 @@ export function getCampaignRedFlags(campaign) {
   const country = normalizeValue(campaign?.locale_country)
   const targeting = campaign?.targeting_criteria || null
   const facets = getTargetingFacetKeys(targeting)
+  const criteriaFacets = facets.filter((facet) => {
+    const f = String(facet || '').toLowerCase()
+    if (f === 'interfacelocales' || f === 'languages') return false
+    if (f === 'locations' || f === 'geolocations' || f === 'profilelocations') return false
+    return true
+  })
 
   if (creativeSelection !== 'OPTIMIZED') {
     flags.push({
@@ -106,11 +112,11 @@ export function getCampaignRedFlags(campaign) {
     })
   }
 
-  if (facets.length > 4) {
+  if (criteriaFacets.length > 4) {
     flags.push({
       code: 'too_many_targeting_facets',
       label: 'Meer dan 4 targeting criteria',
-      detail: `facets=${facets.length}`,
+      detail: `criteria=${criteriaFacets.length} (excl. taal/locatie)`,
       severity: 'warning',
     })
   }
