@@ -65,33 +65,44 @@ export default function Accounts() {
         totalCampaigns = rollupRows.reduce((sum, row) => sum + Number(row.campaigns_total || 0), 0)
         totalSpend = rollupRows.reduce((sum, row) => sum + Number(row.spend_total || 0), 0)
       } else {
-        const [campaignsRes, spendRes] = await Promise.all([
+        const [campaignsRes] = await Promise.all([
           supabase.from('linkedin_ad_campaigns').select('account_id'),
-          supabase.from('linkedin_ad_analytics').select('account_id,spent:cost_in_local_currency.sum()'),
         ])
         if (campaignsRes.error) throw campaignsRes.error
         const campaignRows = campaignsRes.data || []
-        const spendRows = spendRes.error ? [] : (spendRes.data || [])
 
         campaignMap = campaignRows.reduce((acc, row) => {
           const key = String(row.account_id)
           acc[key] = (acc[key] || 0) + 1
           return acc
         }, {})
-        spendMap = spendRows.reduce((acc, row) => {
-          const key = String(row.account_id)
-          const amount = Number(row.spent || 0)
-          acc[key] = amount
-          return acc
-        }, {})
+
+        // Fallback zonder PostgREST aggregates: haal analytics in pagina's op en tel lokaal op.
+        const pageSize = 5000
+        let from = 0
+        spendMap = {}
+        while (true) {
+          const { data: chunk, error: analyticsError } = await supabase
+            .from('linkedin_ad_analytics')
+            .select('account_id,cost_in_local_currency')
+            .range(from, from + pageSize - 1)
+
+          if (analyticsError) throw analyticsError
+
+          const rows = chunk || []
+          for (const row of rows) {
+            const key = String(row.account_id)
+            spendMap[key] = (spendMap[key] || 0) + Number(row.cost_in_local_currency || 0)
+          }
+
+          if (rows.length < pageSize) break
+          from += pageSize
+        }
+
         totalCampaigns = campaignRows.length
         totalSpend = Object.values(spendMap).reduce((sum, v) => sum + Number(v || 0), 0)
 
-        if (spendRes.error) {
-          setError('RPC ontbreekt en spend aggregate gaf ook een fout; campagnes zijn wel geladen.')
-        } else {
-          setError('RPC ontbreekt nog; fallback gebruikt. Draai SQL functie in Supabase voor stabiele totalen.')
-        }
+        setError('RPC ontbreekt nog; fallback gebruikt. Draai SQL functie in Supabase voor stabiele en snellere totalen.')
       }
 
       setAccounts(accountRows)
