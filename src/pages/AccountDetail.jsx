@@ -320,14 +320,22 @@ export default function AccountDetail() {
 
         <div className="zenith-table-wrap">
           <div className="zenith-table-title">Campaign Registry</div>
-          <table className="zenith-table">
+          <table className="zenith-table account-registry-table">
+            <colgroup>
+              <col style={{ width: '56%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '8%' }} />
+              <col style={{ width: '7%' }} />
+              <col style={{ width: '5%' }} />
+            </colgroup>
             <thead>
               <tr>
                 <th>Campaign Identity</th>
                 <th>Status</th>
                 <th>Impressions</th>
                 <th>CTR</th>
-                <th>Red Flags #</th>
+                <th>Flags</th>
                 <th>Actions</th>
               </tr>
             </thead>

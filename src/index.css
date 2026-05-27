@@ -327,7 +327,8 @@ code {
   background: rgba(16, 19, 26, 0.85);
   border: 1px solid rgba(255, 127, 58, 0.28);
   border-radius: 14px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 .zenith-table-title { padding: 16px 24px; font-family: "Space Grotesk", Inter, sans-serif; font-size: 28px; color: #fff; border-bottom: 1px solid rgba(255, 127, 58, 0.2); }
 .zenith-table { width: 100%; border-collapse: collapse; }
@@ -367,6 +368,26 @@ code {
   cursor: pointer;
 }
 .zenith-action-btn:hover { box-shadow: 0 0 10px rgba(125, 244, 255, 0.45); }
+
+.account-registry-table {
+  min-width: 1120px;
+  table-layout: fixed;
+}
+
+.account-registry-table th,
+.account-registry-table td {
+  white-space: nowrap;
+}
+
+.account-registry-table td:first-child,
+.account-registry-table th:first-child {
+  white-space: normal;
+}
+
+.account-registry-table .zenith-campaign-name {
+  font-size: clamp(26px, 2.2vw, 52px);
+  line-height: 1.08;
+}
 
 /* App-wide dark + orange theme for Accounts/Campaigns/Campaign detail */
 .content {
