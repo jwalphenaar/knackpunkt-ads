@@ -109,6 +109,35 @@ code {
 }
 
 .page-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.accounts-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.accounts-overview-item {
+  background: rgba(20,25,35,0.78);
+  border: 1px solid rgba(255,127,58,0.24);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.accounts-overview-item span {
+  font-size: 12px;
+  color: #c4c9ac;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.accounts-overview-item strong {
+  font-size: 20px;
+  color: #ffffff;
+  line-height: 1.2;
+}
+@media (max-width: 900px) {
+  .accounts-overview { grid-template-columns: 1fr; }
+}
 .count { font-size: 14px; background: #e5e7eb; color: #6b7280; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
 .subtitle { color: #6b7280; font-size: 14px; margin-top: -12px; margin-bottom: 20px; }
 .loading { padding: 40px; color: #6b7280; }

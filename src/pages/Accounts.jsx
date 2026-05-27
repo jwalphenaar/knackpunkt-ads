@@ -14,6 +14,9 @@ const STATUS_COLORS = {
 export default function Accounts() {
   const navigate = useNavigate()
   const [accounts, setAccounts] = useState([])
+  const [campaignCountByAccount, setCampaignCountByAccount] = useState({})
+  const [spendByAccount, setSpendByAccount] = useState({})
+  const [totals, setTotals] = useState({ campaigns: 0, spend: 0 })
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [saving, setSaving] = useState(false)
@@ -28,22 +31,58 @@ export default function Accounts() {
     currency: 'EUR',
   })
 
-  const loadAccounts = () => {
+  const loadAccounts = async () => {
     setLoading(true)
     setError('')
-    supabase
-      .from('linkedin_ad_accounts')
-      .select('*')
-      .order('name')
-      .then(({ data, error: loadError }) => {
-        if (loadError) {
-          setError(loadError.message)
-          setAccounts([])
-        } else {
-          setAccounts(data || [])
-        }
-        setLoading(false)
+    try {
+      const [accountsRes, campaignsRes, spendRes] = await Promise.all([
+        supabase.from('linkedin_ad_accounts').select('*').order('name'),
+        supabase.from('linkedin_ad_campaigns').select('account_id'),
+        supabase.from('linkedin_ad_analytics').select('account_id,spent:cost_in_local_currency.sum()'),
+      ])
+
+      if (accountsRes.error) throw accountsRes.error
+      if (campaignsRes.error) throw campaignsRes.error
+      const spendError = spendRes.error
+
+      const accountRows = accountsRes.data || []
+      const campaignRows = campaignsRes.data || []
+      const spendRows = spendError ? [] : (spendRes.data || [])
+
+      const campaignMap = campaignRows.reduce((acc, row) => {
+        const key = String(row.account_id)
+        acc[key] = (acc[key] || 0) + 1
+        return acc
+      }, {})
+
+      const spendMap = spendRows.reduce((acc, row) => {
+        const key = String(row.account_id)
+        const amount = Number(row.spent || 0)
+        acc[key] = amount
+        return acc
+      }, {})
+
+      const totalSpend = Object.values(spendMap).reduce((sum, v) => sum + Number(v || 0), 0)
+
+      setAccounts(accountRows)
+      setCampaignCountByAccount(campaignMap)
+      setSpendByAccount(spendMap)
+      setTotals({
+        campaigns: campaignRows.length,
+        spend: totalSpend,
       })
+      if (spendError) {
+        setError('Spend total tijdelijk niet beschikbaar, account- en campagnedata wel geladen.')
+      }
+    } catch (e) {
+      setError(e.message || 'Laden mislukt.')
+      setAccounts([])
+      setCampaignCountByAccount({})
+      setSpendByAccount({})
+      setTotals({ campaigns: 0, spend: 0 })
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -104,9 +143,26 @@ export default function Accounts() {
 
   if (loading) return <div className="loading">Laden...</div>
 
+  const eur = (n) => `€${Number(n || 0).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
   return (
     <div>
 <h1 className="page-title">Accounts <span className="count">{accounts.length}</span></h1>
+
+<div className="accounts-overview">
+  <div className="accounts-overview-item">
+    <span>Accounts</span>
+    <strong>{accounts.length}</strong>
+  </div>
+  <div className="accounts-overview-item">
+    <span>Totaal campagnes</span>
+    <strong>{totals.campaigns.toLocaleString('nl-NL')}</strong>
+  </div>
+  <div className="accounts-overview-item">
+    <span>Totaal uitgegeven</span>
+    <strong>{eur(totals.spend)}</strong>
+  </div>
+</div>
 
 <form className="account-form" onSubmit={handleSubmit}>
   <input name="id" value={form.id} onChange={handleChange} placeholder="Account ID" />
@@ -148,6 +204,8 @@ export default function Accounts() {
               <th>Naam</th>
               <th>Status</th>
               <th>Type</th>
+              <th>Campagnes</th>
+              <th>Uitgegeven</th>
               <th>Valuta</th>
               <th>ID</th>
             </tr>
@@ -162,6 +220,8 @@ export default function Accounts() {
                   </span>
                 </td>
                 <td>{a.type}</td>
+                <td>{(campaignCountByAccount[String(a.id)] || 0).toLocaleString('nl-NL')}</td>
+                <td>{eur(spendByAccount[String(a.id)] || 0)}</td>
                 <td>{a.currency}</td>
                 <td className="id-cell">{a.id}</td>
               </tr>
