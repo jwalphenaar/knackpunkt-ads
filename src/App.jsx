@@ -12,7 +12,7 @@ export default function App() {
     <BrowserRouter>
       <div className="app">
         <nav className="sidebar">
-          <div className="logo">Knackpunkt<span>Ads</span></div>
+          <div className="logo">Knackpunkt<span>Pulse</span></div>
           <NavLink to="/">Accounts</NavLink>
           <NavLink to="/campaigns">Campagnes</NavLink>
           <NavLink to="/totals">Totalen</NavLink>

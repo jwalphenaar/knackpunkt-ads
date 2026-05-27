@@ -295,7 +295,7 @@ export default function AccountDetail() {
         )}
 
         <div className="zenith-header">
-          <div className="zenith-eyebrow">Knackpunkt Ads</div>
+          <div className="zenith-eyebrow">Knackpunkt Pulse</div>
           <h1 className="zenith-title">Performance Overview</h1>
         </div>
 

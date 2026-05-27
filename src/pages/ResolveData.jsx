@@ -107,7 +107,7 @@ export default function ResolveData() {
     <div className="zenith-page">
       <div className="zenith-shell">
         <div className="zenith-header" style={{ marginTop: 14 }}>
-          <div className="zenith-eyebrow">Knackpunkt Ads</div>
+          <div className="zenith-eyebrow">Knackpunkt Pulse</div>
           <h1 className="zenith-title">Resolve Data</h1>
         </div>
 
