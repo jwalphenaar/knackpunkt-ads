@@ -162,7 +162,7 @@ useEffect(() => {
               <th onClick={() => handleSort('total_budget_amount')} style={{ cursor: 'pointer' }}>Totaal<SortIcon field="total_budget_amount" /></th>
               <th onClick={() => handleSort('last_modified_at')} style={{ cursor: 'pointer' }}>Gewijzigd<SortIcon field="last_modified_at" /></th>
               <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer' }}>Aangemaakt<SortIcon field="created_at" /></th>
-              <th>Red Flags</th>
+              <th>Red Flags #</th>
               <th>ID</th>
             </tr>
           </thead>
@@ -183,15 +183,16 @@ useEffect(() => {
                 <td>{c.last_modified_at ? new Date(c.last_modified_at).toLocaleDateString('nl-NL') : '—'}</td>
                 <td>{c.created_at ? new Date(c.created_at).toLocaleDateString('nl-NL') : '—'}</td>
                 <td>
-                  {(c.red_flag_count || 0) > 0 ? (
-                    <span className="badge" style={{ background: '#ef444420', color: '#ef4444', border: '1px solid #ef444466' }}>
-                      {c.red_flag_count} flags
-                    </span>
-                  ) : (
-                    <span className="badge" style={{ background: '#22c55e20', color: '#22c55e', border: '1px solid #22c55e66' }}>
-                      OK
-                    </span>
-                  )}
+                  <span
+                    className="badge"
+                    style={
+                      (c.red_flag_count || 0) > 0
+                        ? { background: '#ef444420', color: '#ef4444', border: '1px solid #ef444466' }
+                        : { background: '#22c55e20', color: '#22c55e', border: '1px solid #22c55e66' }
+                    }
+                  >
+                    {c.red_flag_count || 0}
+                  </span>
                 </td>
                 <td className="id-cell">{c.id}</td>
               </tr>
