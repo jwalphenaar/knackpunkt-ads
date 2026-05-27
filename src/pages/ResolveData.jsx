@@ -7,6 +7,8 @@ const TYPE_OPTIONS = [
   { key: 'industries', label: 'Industries' },
   { key: 'companies', label: 'Companies' },
   { key: 'geo', label: 'Geo / Locations' },
+  { key: 'skills', label: 'Skills' },
+  { key: 'interests', label: 'Member Interests' },
 ]
 const RESULT_PAGE_SIZE = 15
 
@@ -16,14 +18,30 @@ export default function ResolveData() {
     industries: true,
     companies: true,
     geo: true,
+    skills: true,
+    interests: true,
   })
   const [job, setJob] = useState(null)
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
   const [seedingIndustries, setSeedingIndustries] = useState(false)
   const [seedMsg, setSeedMsg] = useState('')
-  const [pageByType, setPageByType] = useState({ titles: 1, industries: 1, companies: 1, geo: 1 })
-  const [filterByType, setFilterByType] = useState({ titles: 'all', industries: 'all', companies: 'all', geo: 'all' })
+  const [pageByType, setPageByType] = useState({
+    titles: 1,
+    industries: 1,
+    companies: 1,
+    geo: 1,
+    skills: 1,
+    interests: 1,
+  })
+  const [filterByType, setFilterByType] = useState({
+    titles: 'all',
+    industries: 'all',
+    companies: 'all',
+    geo: 'all',
+    skills: 'all',
+    interests: 'all',
+  })
 
   const selectedTypes = useMemo(
     () => Object.entries(selected).filter(([, on]) => on).map(([k]) => k),
@@ -32,7 +50,7 @@ export default function ResolveData() {
   const statusOptions = useMemo(() => {
     if (!job?.types?.length) return TYPE_OPTIONS
     return TYPE_OPTIONS.filter(opt => job.types.includes(opt.key))
-  }, [job?.types])
+  }, [job])
   const resultTypeOptions = [
     { key: 'all', label: 'Alles' },
     { key: 'resolved', label: 'Resolved' },
@@ -56,7 +74,14 @@ export default function ResolveData() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Start mislukt')
       setJob({ id: data.job_id, status: data.status, types: data.types || selectedTypes })
-      setPageByType({ titles: 1, industries: 1, companies: 1, geo: 1 })
+      setPageByType({
+        titles: 1,
+        industries: 1,
+        companies: 1,
+        geo: 1,
+        skills: 1,
+        interests: 1,
+      })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -90,7 +115,9 @@ export default function ResolveData() {
         const res = await fetch(`${API}/api/linkedin-ads/resolve/cache-targeting/status/${job.id}`)
         const data = await res.json()
         if (!cancelled) setJob(data)
-      } catch {}
+      } catch (pollErr) {
+        void pollErr
+      }
       if (!cancelled && (job.status === 'running' || job.status === 'queued')) {
         timer = setTimeout(poll, 2000)
       }
