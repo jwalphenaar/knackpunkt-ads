@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { getCampaignRedFlags } from '../lib/redFlags'
 
 const fmt = (n) => n ? Number(n).toLocaleString('nl-NL') : '—'
 const eur = (n) => n ? `€${Number(n).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'
@@ -350,6 +351,7 @@ const resolveGroup = async (type, endpoint, items) => {
     acc.engagements += row.total_engagements || 0
     return acc
   }, { impressions: 0, clicks: 0, cost: 0, leads: 0, lead_opens: 0, conversions: 0, likes: 0, follows: 0, video_views: 0, video_completions: 0, reach: 0, engagements: 0 })
+  const redFlags = getCampaignRedFlags(campaign)
 
   const targetingEntries = campaign?.targeting_criteria
     ? Object.entries(campaign.targeting_criteria)
@@ -562,6 +564,31 @@ const resolveGroup = async (type, endpoint, items) => {
           {syncJob?.progress && (
             <div style={{ marginTop: 8, fontSize: 12, opacity: 0.85 }}>
               Stage: {syncJob.stage} · Analytics rows: {syncJob.progress.analytics_rows_synced || 0} · Demo rows: {syncJob.progress.demographics_rows_synced || 0}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="table-wrapper" style={{ marginBottom: 20 }}>
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,127,58,0.2)', fontWeight: 600 }}>
+          Red Flags {redFlags.length > 0 ? `(${redFlags.length})` : '(0)'}
+        </div>
+        <div style={{ padding: '14px 16px' }}>
+          {redFlags.length === 0 ? (
+            <span className="badge" style={{ background: '#22c55e20', color: '#22c55e', border: '1px solid #22c55e66' }}>Geen red flags</span>
+          ) : (
+            <div style={{ display: 'grid', gap: 8 }}>
+              {redFlags.map((flag) => (
+                <div key={flag.code} style={{ border: '1px solid rgba(239,68,68,0.45)', borderRadius: 8, padding: '10px 12px', background: 'rgba(239,68,68,0.12)' }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+                    <span className="badge" style={{ background: '#ef444420', color: '#ef4444', border: '1px solid #ef444466' }}>
+                      {flag.severity}
+                    </span>
+                    <strong>{flag.label}</strong>
+                  </div>
+                  <div style={{ fontSize: 13, opacity: 0.9 }}>{flag.detail}</div>
+                </div>
+              ))}
             </div>
           )}
         </div>

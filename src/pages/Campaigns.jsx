@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
+import { getCampaignRedFlags } from '../lib/redFlags'
 
 const STATUS_COLORS = {
   ACTIVE: '#22c55e',
@@ -21,6 +22,7 @@ export default function Campaigns() {
   const [accountFilter, setAccountFilter] = useState('all')
   const [goalFilter, setGoalFilter] = useState('all')
   const [formatFilter, setFormatFilter] = useState('all')
+  const [redFlagFilter, setRedFlagFilter] = useState('all')
 
   // Sortering
   const [sortField, setSortField] = useState('last_modified_at')
@@ -45,7 +47,15 @@ useEffect(() => {
       .order('name')
   ]).then(([{ data: camps, count }, { data: accs }]) => {
     const accountMap = Object.fromEntries((accs || []).map(a => [a.id, a.name]))
-    setCampaigns((camps || []).map(c => ({ ...c, account_name: accountMap[c.account_id] || c.account_id })))
+    setCampaigns((camps || []).map(c => {
+      const redFlags = getCampaignRedFlags(c)
+      return {
+        ...c,
+        account_name: accountMap[c.account_id] || c.account_id,
+        red_flags: redFlags,
+        red_flag_count: redFlags.length,
+      }
+    }))
     setTotal(count || 0)
     setAccounts((accs || []).map(a => a.name).sort())
     setLoading(false)
@@ -64,6 +74,8 @@ useEffect(() => {
   if (accountFilter !== 'all') filtered = filtered.filter(c => c.account_name === accountFilter)
   if (goalFilter !== 'all') filtered = filtered.filter(c => c.objective_type === goalFilter)
   if (formatFilter !== 'all') filtered = filtered.filter(c => c.format === formatFilter)
+  if (redFlagFilter === 'with_flags') filtered = filtered.filter(c => (c.red_flag_count || 0) > 0)
+  if (redFlagFilter === 'without_flags') filtered = filtered.filter(c => (c.red_flag_count || 0) === 0)
 
   // Sorteren
   filtered = [...filtered].sort((a, b) => {
@@ -124,8 +136,14 @@ useEffect(() => {
           {formats.map(f => <option key={f} value={f}>{f}</option>)}
         </select>
 
-        {(accountFilter !== 'all' || goalFilter !== 'all' || formatFilter !== 'all') && (
-          <button className="reset-btn" onClick={() => { setAccountFilter('all'); setGoalFilter('all'); setFormatFilter('all') }}>
+        <select value={redFlagFilter} onChange={e => setRedFlagFilter(e.target.value)}>
+          <option value="all">Alle red flags</option>
+          <option value="with_flags">Alleen met red flags</option>
+          <option value="without_flags">Zonder red flags</option>
+        </select>
+
+        {(accountFilter !== 'all' || goalFilter !== 'all' || formatFilter !== 'all' || redFlagFilter !== 'all') && (
+          <button className="reset-btn" onClick={() => { setAccountFilter('all'); setGoalFilter('all'); setFormatFilter('all'); setRedFlagFilter('all') }}>
             Filters wissen ✕
           </button>
         )}
@@ -144,6 +162,7 @@ useEffect(() => {
               <th onClick={() => handleSort('total_budget_amount')} style={{ cursor: 'pointer' }}>Totaal<SortIcon field="total_budget_amount" /></th>
               <th onClick={() => handleSort('last_modified_at')} style={{ cursor: 'pointer' }}>Gewijzigd<SortIcon field="last_modified_at" /></th>
               <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer' }}>Aangemaakt<SortIcon field="created_at" /></th>
+              <th>Red Flags</th>
               <th>ID</th>
             </tr>
           </thead>
@@ -163,6 +182,17 @@ useEffect(() => {
                 <td>{c.total_budget_amount ? `€${c.total_budget_amount}` : '—'}</td>
                 <td>{c.last_modified_at ? new Date(c.last_modified_at).toLocaleDateString('nl-NL') : '—'}</td>
                 <td>{c.created_at ? new Date(c.created_at).toLocaleDateString('nl-NL') : '—'}</td>
+                <td>
+                  {(c.red_flag_count || 0) > 0 ? (
+                    <span className="badge" style={{ background: '#ef444420', color: '#ef4444', border: '1px solid #ef444466' }}>
+                      {c.red_flag_count} flags
+                    </span>
+                  ) : (
+                    <span className="badge" style={{ background: '#22c55e20', color: '#22c55e', border: '1px solid #22c55e66' }}>
+                      OK
+                    </span>
+                  )}
+                </td>
                 <td className="id-cell">{c.id}</td>
               </tr>
             ))}
