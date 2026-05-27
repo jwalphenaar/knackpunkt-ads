@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { getCampaignRedFlags } from '../lib/redFlags'
 
 const fmt = (n) => n ? Number(n).toLocaleString('nl-NL') : '0'
 const eur = (n) => n ? `€${Number(n).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '€0,00'
@@ -24,7 +25,7 @@ export default function AccountDetail() {
   const [campaigns, setCampaigns] = useState([])
   const [analytics, setAnalytics] = useState([])
   const [error, setError] = useState('')
-  const [dateFilter, setDateFilter] = useState('this_month')
+  const [dateFilter, setDateFilter] = useState('all')
   const [syncJob, setSyncJob] = useState(null)
   const [syncBusy, setSyncBusy] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
@@ -59,7 +60,7 @@ export default function AccountDetail() {
 
     const { data: campData, error: campError } = await supabase
       .from('linkedin_ad_campaigns')
-      .select('id, name, status, last_modified_at')
+      .select('id, name, status, last_modified_at, creative_selection, audience_expansion_enabled, off_platform_delivery_enabled, cost_type, locale_language, locale_country, targeting_criteria')
       .eq('account_id', id)
       .order('last_modified_at', { ascending: false })
 
@@ -235,6 +236,7 @@ export default function AccountDetail() {
         id: c.id,
         name: c.name,
         status: c.status,
+        red_flag_count: getCampaignRedFlags(c).length,
         ...perCampaign[c.id],
       }))
       .filter(c => (c.impressions || 0) > 0 || (c.clicks || 0) > 0 || (c.cost || 0) > 0 || (c.leads || 0) > 0)
@@ -325,6 +327,7 @@ export default function AccountDetail() {
                 <th>Status</th>
                 <th>Impressions</th>
                 <th>CTR</th>
+                <th>Red Flags #</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -339,13 +342,25 @@ export default function AccountDetail() {
                   <td>{fmt(c.impressions)}</td>
                   <td>{pct(c.clicks, c.impressions)}</td>
                   <td>
+                    <span
+                      className="badge"
+                      style={
+                        (c.red_flag_count || 0) > 0
+                          ? { background: '#ef444420', color: '#ef4444', border: '1px solid #ef444466' }
+                          : { background: '#22c55e20', color: '#22c55e', border: '1px solid #22c55e66' }
+                      }
+                    >
+                      {c.red_flag_count || 0}
+                    </span>
+                  </td>
+                  <td>
                     <button className="zenith-action-btn" onClick={() => navigate(`/campaigns/${c.id}`)} aria-label="Open campagne">↗</button>
                   </td>
                 </tr>
               ))}
               {registryRows.length === 0 && (
                 <tr>
-                  <td colSpan={5}>Geen actieve campagnes in deze periode.</td>
+                  <td colSpan={6}>Geen actieve campagnes in deze periode.</td>
                 </tr>
               )}
             </tbody>
