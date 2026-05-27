@@ -35,45 +35,72 @@ export default function Accounts() {
     setLoading(true)
     setError('')
     try {
-      const [accountsRes, campaignsRes, spendRes] = await Promise.all([
+      const [accountsRes, rollupRes] = await Promise.all([
         supabase.from('linkedin_ad_accounts').select('*').order('name'),
-        supabase.from('linkedin_ad_campaigns').select('account_id'),
-        supabase.from('linkedin_ad_analytics').select('account_id,spent:cost_in_local_currency.sum()'),
+        supabase.rpc('knackpunkt_accounts_rollup'),
       ])
 
       if (accountsRes.error) throw accountsRes.error
-      if (campaignsRes.error) throw campaignsRes.error
-      const spendError = spendRes.error
 
       const accountRows = accountsRes.data || []
-      const campaignRows = campaignsRes.data || []
-      const spendRows = spendError ? [] : (spendRes.data || [])
+      let campaignMap = {}
+      let spendMap = {}
+      let totalCampaigns = 0
+      let totalSpend = 0
 
-      const campaignMap = campaignRows.reduce((acc, row) => {
-        const key = String(row.account_id)
-        acc[key] = (acc[key] || 0) + 1
-        return acc
-      }, {})
+      if (!rollupRes.error) {
+        const rollupRows = rollupRes.data || []
+        campaignMap = rollupRows.reduce((acc, row) => {
+          const key = String(row.account_id)
+          const count = Number(row.campaigns_total || 0)
+          acc[key] = count
+          return acc
+        }, {})
+        spendMap = rollupRows.reduce((acc, row) => {
+          const key = String(row.account_id)
+          const amount = Number(row.spend_total || 0)
+          acc[key] = amount
+          return acc
+        }, {})
+        totalCampaigns = rollupRows.reduce((sum, row) => sum + Number(row.campaigns_total || 0), 0)
+        totalSpend = rollupRows.reduce((sum, row) => sum + Number(row.spend_total || 0), 0)
+      } else {
+        const [campaignsRes, spendRes] = await Promise.all([
+          supabase.from('linkedin_ad_campaigns').select('account_id'),
+          supabase.from('linkedin_ad_analytics').select('account_id,spent:cost_in_local_currency.sum()'),
+        ])
+        if (campaignsRes.error) throw campaignsRes.error
+        const campaignRows = campaignsRes.data || []
+        const spendRows = spendRes.error ? [] : (spendRes.data || [])
 
-      const spendMap = spendRows.reduce((acc, row) => {
-        const key = String(row.account_id)
-        const amount = Number(row.spent || 0)
-        acc[key] = amount
-        return acc
-      }, {})
+        campaignMap = campaignRows.reduce((acc, row) => {
+          const key = String(row.account_id)
+          acc[key] = (acc[key] || 0) + 1
+          return acc
+        }, {})
+        spendMap = spendRows.reduce((acc, row) => {
+          const key = String(row.account_id)
+          const amount = Number(row.spent || 0)
+          acc[key] = amount
+          return acc
+        }, {})
+        totalCampaigns = campaignRows.length
+        totalSpend = Object.values(spendMap).reduce((sum, v) => sum + Number(v || 0), 0)
 
-      const totalSpend = Object.values(spendMap).reduce((sum, v) => sum + Number(v || 0), 0)
+        if (spendRes.error) {
+          setError('RPC ontbreekt en spend aggregate gaf ook een fout; campagnes zijn wel geladen.')
+        } else {
+          setError('RPC ontbreekt nog; fallback gebruikt. Draai SQL functie in Supabase voor stabiele totalen.')
+        }
+      }
 
       setAccounts(accountRows)
       setCampaignCountByAccount(campaignMap)
       setSpendByAccount(spendMap)
       setTotals({
-        campaigns: campaignRows.length,
+        campaigns: totalCampaigns,
         spend: totalSpend,
       })
-      if (spendError) {
-        setError('Spend total tijdelijk niet beschikbaar, account- en campagnedata wel geladen.')
-      }
     } catch (e) {
       setError(e.message || 'Laden mislukt.')
       setAccounts([])
