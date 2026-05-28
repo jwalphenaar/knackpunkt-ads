@@ -67,6 +67,21 @@ const STATUS_COLORS = {
 
 const API = import.meta.env.VITE_API_URL
 
+function aggregateDemographicRows(rows = []) {
+  const byValue = new Map()
+  for (const row of rows) {
+    const pivotValue = row?.pivot_value
+    if (!pivotValue) continue
+    const existing = byValue.get(pivotValue)
+    if (!existing) {
+      byValue.set(pivotValue, { ...row, impressions: Number(row.impressions || 0) })
+      continue
+    }
+    existing.impressions += Number(row.impressions || 0)
+  }
+  return [...byValue.values()]
+}
+
 export default function CampaignDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -96,8 +111,9 @@ export default function CampaignDetail() {
 
 const resolveGroup = async (type, endpoint, items) => {
   if (!items || items.length === 0) return
+  const aggregated = aggregateDemographicRows(items)
   // Sorteer op impressies en pak top 20 IDs
-  const top = [...items]
+  const top = [...aggregated]
     .sort((a, b) => b.impressions - a.impressions)
     .slice(0, 20)
   const ids = [...new Set(top.map(d => d.pivot_value.split(':').pop()))]
@@ -332,7 +348,7 @@ const resolveGroup = async (type, endpoint, items) => {
         if (!start) return true
         return d >= start && d <= end
       })
-      return [pivot, scopedRows]
+      return [pivot, aggregateDemographicRows(scopedRows)]
     })
   )
 
