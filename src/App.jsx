@@ -6,6 +6,7 @@ import AccountDetail from './pages/AccountDetail'
 import ResolveData from './pages/ResolveData'
 import Totals from './pages/Totals'
 import Monitoring from './pages/Monitoring'
+import AIAudienceBuilder from './pages/AIAudienceBuilder'
 import './App.css'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <NavLink to="/">Accounts</NavLink>
           <NavLink to="/campaigns">Campagnes</NavLink>
           <NavLink to="/monitoring">Monitoring</NavLink>
+          <NavLink to="/ai-builder">AI Builder</NavLink>
           <NavLink to="/totals">Totalen</NavLink>
           <NavLink to="/resolve-data">Resolve Data</NavLink>
         </nav>
@@ -24,6 +26,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Accounts />} />
             <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/ai-builder" element={<AIAudienceBuilder />} />
             <Route path="/totals" element={<Totals />} />
             <Route path="/accounts/:id" element={<AccountDetail />} />
             <Route path="/campaigns" element={<Campaigns />} />
