@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
+const ACCOUNTS_CACHE_KEY = 'knackpunkt_pulse_accounts_cache_v1'
+const ACCOUNTS_CACHE_TTL_MS = 10 * 60 * 1000
+
 const STATUS_COLORS = {
   RUNNABLE: '#22c55e',
   BILLING_HOLD: '#f59e0b',
@@ -9,6 +12,29 @@ const STATUS_COLORS = {
   REMOVED: '#ef4444',
   DRAFT: '#a855f7',
   ACCOUNT_END_DATE_HOLD: '#f97316',
+}
+
+function readAccountsCache() {
+  try {
+    const raw = localStorage.getItem(ACCOUNTS_CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (!parsed?.storedAt || !parsed?.payload) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function writeAccountsCache(payload) {
+  try {
+    localStorage.setItem(
+      ACCOUNTS_CACHE_KEY,
+      JSON.stringify({ storedAt: Date.now(), payload })
+    )
+  } catch {
+    // ignore cache write failures
+  }
 }
 
 export default function Accounts() {
@@ -22,6 +48,7 @@ export default function Accounts() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [cacheInfo, setCacheInfo] = useState(null)
   const [form, setForm] = useState({
     id: '',
     name: '',
@@ -31,8 +58,15 @@ export default function Accounts() {
     currency: 'EUR',
   })
 
-  const loadAccounts = async () => {
-    setLoading(true)
+  const applyAccountsPayload = (payload) => {
+    setAccounts(payload.accounts || [])
+    setCampaignCountByAccount(payload.campaignCountByAccount || {})
+    setSpendByAccount(payload.spendByAccount || {})
+    setTotals(payload.totals || { campaigns: 0, spend: 0 })
+  }
+
+  const loadAccounts = async ({ background = false } = {}) => {
+    if (!background) setLoading(true)
     setError('')
     try {
       const [accountsRes, rollupRes] = await Promise.all([
@@ -105,26 +139,44 @@ export default function Accounts() {
         setError('RPC ontbreekt nog; fallback gebruikt. Draai SQL functie in Supabase voor stabiele en snellere totalen.')
       }
 
-      setAccounts(accountRows)
-      setCampaignCountByAccount(campaignMap)
-      setSpendByAccount(spendMap)
-      setTotals({
+      const payload = {
+        accounts: accountRows,
+        campaignCountByAccount: campaignMap,
+        spendByAccount: spendMap,
+        totals: {
         campaigns: totalCampaigns,
         spend: totalSpend,
-      })
+        },
+      }
+      applyAccountsPayload(payload)
+      writeAccountsCache(payload)
+      setCacheInfo({ source: 'live', storedAt: Date.now() })
     } catch (e) {
-      setError(e.message || 'Laden mislukt.')
-      setAccounts([])
-      setCampaignCountByAccount({})
-      setSpendByAccount({})
-      setTotals({ campaigns: 0, spend: 0 })
+      if (background && accounts.length > 0) {
+        setError(`Live verversen mislukt; cached data getoond. (${e.message || 'onbekende fout'})`)
+      } else {
+        setError(e.message || 'Laden mislukt.')
+        setAccounts([])
+        setCampaignCountByAccount({})
+        setSpendByAccount({})
+        setTotals({ campaigns: 0, spend: 0 })
+      }
     } finally {
-      setLoading(false)
+      if (!background) setLoading(false)
     }
   }
 
   useEffect(() => {
-    loadAccounts()
+    const cached = readAccountsCache()
+    const hasFreshCache = cached && (Date.now() - cached.storedAt <= ACCOUNTS_CACHE_TTL_MS)
+
+    if (cached?.payload) {
+      applyAccountsPayload(cached.payload)
+      setCacheInfo({ source: 'cache', storedAt: cached.storedAt })
+      setLoading(false)
+    }
+
+    loadAccounts({ background: Boolean(hasFreshCache || cached?.payload) })
   }, [])
 
   const filtered = filter === 'all'
@@ -226,6 +278,11 @@ export default function Accounts() {
 
 {error && <div className="form-msg form-error">{error}</div>}
 {success && <div className="form-msg form-success">{success}</div>}
+{cacheInfo?.storedAt && (
+  <div className="form-msg" style={{ opacity: 0.8 }}>
+    Data bron: {cacheInfo.source === 'cache' ? 'cache' : 'live'} · bijgewerkt: {new Date(cacheInfo.storedAt).toLocaleString('nl-NL')}
+  </div>
+)}
 
 <div className="filter-bar">
   {[['all', 'Alle'], ['RUNNABLE', 'Actief'], ['BILLING_HOLD', 'Billing Hold'], ['STOPPED', 'Gestopt']].map(([key, label]) => (
