@@ -58,10 +58,10 @@ export function getCampaignRedFlags(campaign) {
     return true
   })
 
-  if (creativeSelection !== 'OPTIMIZED') {
+  if (creativeSelection !== 'OPTIMIZED' && creativeSelection !== 'ROUND_ROBIN') {
     flags.push({
       code: 'ad_selection_not_optimized',
-      label: 'Ad selection niet OPTIMIZED',
+      label: 'Ad selection niet OPTIMIZED/ROUND_ROBIN',
       detail: `creative_selection=${campaign?.creative_selection || 'onbekend'}`,
       severity: 'critical',
     })
