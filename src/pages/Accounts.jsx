@@ -243,6 +243,7 @@ export default function Accounts() {
             <tr>
               <th>Naam</th>
               <th>Status</th>
+              <th>API toegang</th>
               <th>Type</th>
               <th>Campagnes</th>
               <th>Uitgegeven</th>
@@ -257,6 +258,19 @@ export default function Accounts() {
                 <td>
                   <span className="badge" style={{ background: STATUS_COLORS[a.serving_statuses?.[0]] + '20', color: STATUS_COLORS[a.serving_statuses?.[0]] }}>
                     {a.serving_statuses?.[0] || a.status}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    className="badge"
+                    style={
+                      a.api_accessible
+                        ? { background: '#22c55e20', color: '#22c55e', border: '1px solid #22c55e66' }
+                        : { background: '#ef444420', color: '#ef4444', border: '1px solid #ef444466' }
+                    }
+                    title={a.api_access_error || ''}
+                  >
+                    {a.api_accessible ? 'Ja' : 'Nee'}
                   </span>
                 </td>
                 <td>{a.type}</td>
