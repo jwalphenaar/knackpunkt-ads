@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
 const ACCOUNTS_CACHE_KEY = 'knackpunkt_pulse_accounts_cache_v1'
 const ACCOUNTS_CACHE_TTL_MS = 10 * 60 * 1000
+const API = import.meta.env.VITE_API_URL
 
 const STATUS_COLORS = {
   RUNNABLE: '#22c55e',
@@ -59,94 +59,31 @@ export default function Accounts() {
   })
 
   const applyAccountsPayload = (payload) => {
-    setAccounts(payload.accounts || [])
-    setCampaignCountByAccount(payload.campaignCountByAccount || {})
-    setSpendByAccount(payload.spendByAccount || {})
-    setTotals(payload.totals || { campaigns: 0, spend: 0 })
+    setAccounts(payload?.accounts || [])
+    setCampaignCountByAccount(payload?.campaignCountByAccount || {})
+    setSpendByAccount(payload?.spendByAccount || {})
+    setTotals(payload?.totals || { campaigns: 0, spend: 0 })
   }
 
-  const loadAccounts = async ({ background = false } = {}) => {
+  const loadAccounts = async ({ background = false, runSync = false } = {}) => {
     if (!background) setLoading(true)
     setError('')
     try {
-      const [accountsRes, rollupRes] = await Promise.all([
-        supabase.from('linkedin_ad_accounts').select('*').order('name'),
-        supabase.rpc('knackpunkt_accounts_rollup'),
-      ])
-
-      if (accountsRes.error) throw accountsRes.error
-
-      const accountRows = accountsRes.data || []
-      let campaignMap = {}
-      let spendMap = {}
-      let totalCampaigns = 0
-      let totalSpend = 0
-
-      if (!rollupRes.error) {
-        const rollupRows = rollupRes.data || []
-        campaignMap = rollupRows.reduce((acc, row) => {
-          const key = String(row.account_id)
-          const count = Number(row.campaigns_total || 0)
-          acc[key] = count
-          return acc
-        }, {})
-        spendMap = rollupRows.reduce((acc, row) => {
-          const key = String(row.account_id)
-          const amount = Number(row.spend_total || 0)
-          acc[key] = amount
-          return acc
-        }, {})
-        totalCampaigns = rollupRows.reduce((sum, row) => sum + Number(row.campaigns_total || 0), 0)
-        totalSpend = rollupRows.reduce((sum, row) => sum + Number(row.spend_total || 0), 0)
-      } else {
-        const [campaignsRes] = await Promise.all([
-          supabase.from('linkedin_ad_campaigns').select('account_id'),
-        ])
-        if (campaignsRes.error) throw campaignsRes.error
-        const campaignRows = campaignsRes.data || []
-
-        campaignMap = campaignRows.reduce((acc, row) => {
-          const key = String(row.account_id)
-          acc[key] = (acc[key] || 0) + 1
-          return acc
-        }, {})
-
-        // Fallback zonder PostgREST aggregates: haal analytics in pagina's op en tel lokaal op.
-        const pageSize = 5000
-        let from = 0
-        spendMap = {}
-        while (true) {
-          const { data: chunk, error: analyticsError } = await supabase
-            .from('linkedin_ad_analytics')
-            .select('account_id,cost_in_local_currency')
-            .range(from, from + pageSize - 1)
-
-          if (analyticsError) throw analyticsError
-
-          const rows = chunk || []
-          for (const row of rows) {
-            const key = String(row.account_id)
-            spendMap[key] = (spendMap[key] || 0) + Number(row.cost_in_local_currency || 0)
-          }
-
-          if (rows.length < pageSize) break
-          from += pageSize
-        }
-
-        totalCampaigns = campaignRows.length
-        totalSpend = Object.values(spendMap).reduce((sum, v) => sum + Number(v || 0), 0)
-
-        setError('RPC ontbreekt nog; fallback gebruikt. Draai SQL functie in Supabase voor stabiele en snellere totalen.')
+      if (runSync) {
+        const syncRes = await fetch(`${API}/api/linkedin-ads/sync/accounts`, { method: 'POST' })
+        const syncData = await syncRes.json()
+        if (!syncRes.ok) throw new Error(syncData.error || 'LinkedIn account sync mislukt.')
       }
 
+      const res = await fetch(`${API}/api/linkedin-ads/db/accounts-overview`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Accounts laden mislukt.')
+
       const payload = {
-        accounts: accountRows,
-        campaignCountByAccount: campaignMap,
-        spendByAccount: spendMap,
-        totals: {
-        campaigns: totalCampaigns,
-        spend: totalSpend,
-        },
+        accounts: data.accounts || [],
+        campaignCountByAccount: data.campaignCountByAccount || {},
+        spendByAccount: data.spendByAccount || {},
+        totals: data.totals || { campaigns: 0, spend: 0 },
       }
       applyAccountsPayload(payload)
       writeAccountsCache(payload)
@@ -176,7 +113,7 @@ export default function Accounts() {
       setLoading(false)
     }
 
-    loadAccounts({ background: Boolean(hasFreshCache || cached?.payload) })
+    loadAccounts({ background: Boolean(hasFreshCache || cached?.payload), runSync: true })
   }, [])
 
   const filtered = filter === 'all'
@@ -206,29 +143,37 @@ export default function Accounts() {
     }
 
     setSaving(true)
-    const payload = {
-      id: form.id.trim(),
-      name: form.name.trim(),
-      status: form.status,
-      serving_statuses: [form.servingStatus],
-      type: form.type || null,
-      currency: form.currency || null,
-    }
-
-    const { error: insertError } = await supabase
-      .from('linkedin_ad_accounts')
-      .insert(payload)
-
-    if (insertError) {
-      setError(insertError.message)
+    const res = await fetch(`${API}/api/linkedin-ads/db/accounts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: Number(form.id.trim()),
+        name: form.name.trim(),
+        status: form.status,
+        servingStatus: form.servingStatus,
+        type: form.type || null,
+        currency: form.currency || null,
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      setError(data.error || 'Account toevoegen mislukt.')
       setSaving(false)
       return
     }
 
+    applyAccountsPayload(data)
+    writeAccountsCache({
+      accounts: data.accounts || [],
+      campaignCountByAccount: data.campaignCountByAccount || {},
+      spendByAccount: data.spendByAccount || {},
+      totals: data.totals || { campaigns: 0, spend: 0 },
+    })
+    setCacheInfo({ source: 'live', storedAt: Date.now() })
     setForm(prev => ({ ...prev, id: '', name: '' }))
     setSuccess('Account toegevoegd.')
     setSaving(false)
-    loadAccounts()
+    loadAccounts({ background: true, runSync: false })
   }
 
   if (loading) return <div className="loading">Laden...</div>
