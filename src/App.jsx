@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Accounts from './pages/Accounts'
 import Campaigns from './pages/Campaigns'
@@ -9,12 +10,33 @@ import Monitoring from './pages/Monitoring'
 import AIAudienceBuilder from './pages/AIAudienceBuilder'
 import './App.css'
 
+const THEME_STORAGE_KEY = 'knackpunkt_pulse_theme'
+
 export default function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'pulse')
+
+  useEffect(() => {
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+    document.body.classList.remove('theme-pulse', 'theme-crt')
+    document.body.classList.add(theme === 'crt' ? 'theme-crt' : 'theme-pulse')
+  }, [theme])
+
   return (
     <BrowserRouter>
       <div className="app">
         <nav className="sidebar">
           <div className="logo">Knackpunkt<span>Pulse</span></div>
+          <div className="theme-picker">
+            <label htmlFor="theme-select">Theme</label>
+            <select
+              id="theme-select"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+            >
+              <option value="pulse">Pulse Dark</option>
+              <option value="crt">CRT Groen</option>
+            </select>
+          </div>
           <NavLink to="/">Accounts</NavLink>
           <NavLink to="/campaigns">Campagnes</NavLink>
           <NavLink to="/monitoring">Monitoring</NavLink>

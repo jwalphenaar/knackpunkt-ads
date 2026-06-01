@@ -634,3 +634,124 @@ code {
   background: rgba(255,127,58,0.14);
   color: #ffbf98;
 }
+
+/* CRT green theme */
+body.theme-crt {
+  color: #d6ffe1;
+  background: #030806;
+}
+body.theme-crt .content {
+  background: #030806;
+  background-image:
+    linear-gradient(rgba(121, 255, 159, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(121, 255, 159, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+body.theme-crt .table-wrapper,
+body.theme-crt .kpi-card,
+body.theme-crt .demo-card,
+body.theme-crt .info-card,
+body.theme-crt .dropdown-filters select,
+body.theme-crt .account-form input,
+body.theme-crt .account-form select,
+body.theme-crt .zenith-table-wrap,
+body.theme-crt .targeting-group {
+  background: rgba(9, 20, 11, 0.88);
+  border-color: rgba(121, 255, 159, 0.3);
+  color: #d8ffe2;
+}
+body.theme-crt .page-title,
+body.theme-crt .section-title,
+body.theme-crt .zenith-title,
+body.theme-crt .zenith-account,
+body.theme-crt .zenith-table-title {
+  color: #d7ffdf;
+}
+body.theme-crt .count {
+  background: rgba(121, 255, 159, 0.18);
+  border-color: rgba(121, 255, 159, 0.35);
+  color: #b9ffcb;
+}
+body.theme-crt .data-table th,
+body.theme-crt .zenith-table th {
+  background: rgba(10, 24, 13, 0.92);
+  color: #b9ffcb;
+  border-bottom-color: rgba(121, 255, 159, 0.24);
+}
+body.theme-crt .data-table td,
+body.theme-crt .zenith-table td {
+  border-bottom-color: rgba(121, 255, 159, 0.15);
+  color: #d6ffe1;
+}
+body.theme-crt .data-table tr:hover td,
+body.theme-crt .zenith-table tr:hover td {
+  background: rgba(121, 255, 159, 0.08);
+}
+body.theme-crt .badge {
+  background: rgba(121, 255, 159, 0.14);
+  color: #b9ffcb;
+}
+body.theme-crt .filter-btn {
+  border-color: rgba(121, 255, 159, 0.3);
+  background: rgba(10, 23, 14, 0.88);
+  color: #d4ffe0;
+}
+body.theme-crt .filter-btn span {
+  background: rgba(121, 255, 159, 0.12);
+  color: #b9ffcb;
+}
+body.theme-crt .filter-btn.active {
+  background: rgba(121, 255, 159, 0.24);
+  border-color: rgba(121, 255, 159, 0.55);
+  color: #deffe6;
+}
+body.theme-crt .reset-btn {
+  border-color: rgba(121, 255, 159, 0.5);
+  background: rgba(121, 255, 159, 0.1);
+  color: #bcffcd;
+}
+body.theme-crt .back-btn {
+  border-color: rgba(121, 255, 159, 0.45);
+  color: #bcffcd;
+}
+body.theme-crt .back-btn:hover {
+  background: rgba(121, 255, 159, 0.1);
+}
+body.theme-crt .detail-hero,
+body.theme-crt .info-card-blue {
+  background: rgba(10, 22, 12, 0.92) !important;
+  border-color: rgba(121, 255, 159, 0.28) !important;
+}
+body.theme-crt .meta-tag {
+  background: rgba(121, 255, 159, 0.16);
+}
+body.theme-crt .campaign-detail-page .demo-card {
+  background: rgba(10, 21, 13, 0.92);
+  border-color: rgba(121, 255, 159, 0.28);
+}
+body.theme-crt .campaign-detail-page .demo-table {
+  border-color: rgba(121, 255, 159, 0.3);
+}
+body.theme-crt .campaign-detail-page .demo-table tr,
+body.theme-crt .campaign-detail-page .demo-table td {
+  border-color: rgba(121, 255, 159, 0.14);
+}
+body.theme-crt .campaign-detail-page .demo-table td,
+body.theme-crt .campaign-detail-page .demo-table tr:nth-child(odd) td,
+body.theme-crt .campaign-detail-page .demo-table tr:nth-child(even) td {
+  background: rgba(12, 24, 14, 0.95);
+  color: #ddffe5;
+}
+body.theme-crt .campaign-detail-page .demo-table .demo-val {
+  color: #9cffb7 !important;
+}
+body.theme-crt .targeting-op {
+  border-color: rgba(121, 255, 159, 0.42);
+  color: #b9ffcb;
+}
+body.theme-crt .targeting-op-soft,
+body.theme-crt .targeting-chip {
+  border-color: rgba(121, 255, 159, 0.28);
+  color: #c8ffd6;
+  background: rgba(121, 255, 159, 0.09);
+}
