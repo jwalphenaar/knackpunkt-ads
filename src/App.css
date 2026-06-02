@@ -56,3 +56,23 @@ body.theme-crt .sidebar a.active {
   color: #b8ffca;
   border-color: rgba(94, 255, 143, 0.4);
 }
+
+body.theme-crt-orange .sidebar {
+  background: #130d08;
+  border-right-color: rgba(255, 178, 107, 0.24);
+}
+body.theme-crt-orange .logo { color: #fff0dc; }
+body.theme-crt-orange .logo span { color: #ffb86b; text-shadow: 0 0 10px rgba(255, 184, 107, 0.42); }
+body.theme-crt-orange .theme-picker label { color: #d8a772; }
+body.theme-crt-orange .theme-picker select {
+  border-color: rgba(255, 184, 107, 0.36);
+  background: rgba(23, 16, 10, 0.95);
+  color: #ffe6c9;
+}
+body.theme-crt-orange .sidebar a { color: #e0b98c; }
+body.theme-crt-orange .sidebar a:hover { background: rgba(255, 184, 107, 0.1); color: #fff0de; }
+body.theme-crt-orange .sidebar a.active {
+  background: rgba(255, 184, 107, 0.14);
+  color: #ffd4a5;
+  border-color: rgba(255, 184, 107, 0.38);
+}

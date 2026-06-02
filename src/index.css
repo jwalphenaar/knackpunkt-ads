@@ -755,3 +755,123 @@ body.theme-crt .targeting-chip {
   color: #c8ffd6;
   background: rgba(121, 255, 159, 0.09);
 }
+
+body.theme-crt-orange {
+  color: #ffe7cc;
+  background: #090603;
+}
+body.theme-crt-orange .content {
+  background: #090603;
+  background-image:
+    linear-gradient(rgba(255, 184, 107, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 184, 107, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+body.theme-crt-orange .table-wrapper,
+body.theme-crt-orange .kpi-card,
+body.theme-crt-orange .demo-card,
+body.theme-crt-orange .info-card,
+body.theme-crt-orange .dropdown-filters select,
+body.theme-crt-orange .account-form input,
+body.theme-crt-orange .account-form select,
+body.theme-crt-orange .zenith-table-wrap,
+body.theme-crt-orange .targeting-group {
+  background: rgba(24, 16, 10, 0.88);
+  border-color: rgba(255, 184, 107, 0.28);
+  color: #ffe8d0;
+}
+body.theme-crt-orange .page-title,
+body.theme-crt-orange .section-title,
+body.theme-crt-orange .zenith-title,
+body.theme-crt-orange .zenith-account,
+body.theme-crt-orange .zenith-table-title {
+  color: #fff0dd;
+}
+body.theme-crt-orange .count {
+  background: rgba(255, 184, 107, 0.18);
+  border-color: rgba(255, 184, 107, 0.34);
+  color: #ffd5a4;
+}
+body.theme-crt-orange .data-table th,
+body.theme-crt-orange .zenith-table th {
+  background: rgba(30, 20, 12, 0.92);
+  color: #ffd5a4;
+  border-bottom-color: rgba(255, 184, 107, 0.22);
+}
+body.theme-crt-orange .data-table td,
+body.theme-crt-orange .zenith-table td {
+  border-bottom-color: rgba(255, 184, 107, 0.14);
+  color: #ffe6cc;
+}
+body.theme-crt-orange .data-table tr:hover td,
+body.theme-crt-orange .zenith-table tr:hover td {
+  background: rgba(255, 184, 107, 0.08);
+}
+body.theme-crt-orange .badge {
+  background: rgba(255, 184, 107, 0.14);
+  color: #ffd4a1;
+}
+body.theme-crt-orange .filter-btn {
+  border-color: rgba(255, 184, 107, 0.28);
+  background: rgba(24, 17, 10, 0.88);
+  color: #ffe2bf;
+}
+body.theme-crt-orange .filter-btn span {
+  background: rgba(255, 184, 107, 0.12);
+  color: #ffd4a1;
+}
+body.theme-crt-orange .filter-btn.active {
+  background: rgba(255, 184, 107, 0.22);
+  border-color: rgba(255, 184, 107, 0.5);
+  color: #fff2df;
+}
+body.theme-crt-orange .reset-btn {
+  border-color: rgba(255, 184, 107, 0.45);
+  background: rgba(255, 184, 107, 0.1);
+  color: #ffd4a1;
+}
+body.theme-crt-orange .back-btn {
+  border-color: rgba(255, 184, 107, 0.42);
+  color: #ffd4a1;
+}
+body.theme-crt-orange .back-btn:hover {
+  background: rgba(255, 184, 107, 0.1);
+}
+body.theme-crt-orange .detail-hero,
+body.theme-crt-orange .info-card-blue {
+  background: rgba(26, 18, 10, 0.92) !important;
+  border-color: rgba(255, 184, 107, 0.26) !important;
+}
+body.theme-crt-orange .meta-tag {
+  background: rgba(255, 184, 107, 0.15);
+}
+body.theme-crt-orange .campaign-detail-page .demo-card {
+  background: rgba(24, 16, 10, 0.92);
+  border-color: rgba(255, 184, 107, 0.26);
+}
+body.theme-crt-orange .campaign-detail-page .demo-table {
+  border-color: rgba(255, 184, 107, 0.28);
+}
+body.theme-crt-orange .campaign-detail-page .demo-table tr,
+body.theme-crt-orange .campaign-detail-page .demo-table td {
+  border-color: rgba(255, 184, 107, 0.12);
+}
+body.theme-crt-orange .campaign-detail-page .demo-table td,
+body.theme-crt-orange .campaign-detail-page .demo-table tr:nth-child(odd) td,
+body.theme-crt-orange .campaign-detail-page .demo-table tr:nth-child(even) td {
+  background: rgba(27, 18, 11, 0.95);
+  color: #ffe9d1;
+}
+body.theme-crt-orange .campaign-detail-page .demo-table .demo-val {
+  color: #ffcc8f !important;
+}
+body.theme-crt-orange .targeting-op {
+  border-color: rgba(255, 184, 107, 0.38);
+  color: #ffd4a1;
+}
+body.theme-crt-orange .targeting-op-soft,
+body.theme-crt-orange .targeting-chip {
+  border-color: rgba(255, 184, 107, 0.26);
+  color: #ffe1bb;
+  background: rgba(255, 184, 107, 0.08);
+}

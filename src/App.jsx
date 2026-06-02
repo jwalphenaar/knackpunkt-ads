@@ -17,8 +17,10 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, theme)
-    document.body.classList.remove('theme-pulse', 'theme-crt')
-    document.body.classList.add(theme === 'crt' ? 'theme-crt' : 'theme-pulse')
+    document.body.classList.remove('theme-pulse', 'theme-crt', 'theme-crt-orange')
+    if (theme === 'crt') document.body.classList.add('theme-crt')
+    else if (theme === 'crt-orange') document.body.classList.add('theme-crt-orange')
+    else document.body.classList.add('theme-pulse')
   }, [theme])
 
   return (
@@ -35,6 +37,7 @@ export default function App() {
             >
               <option value="pulse">Pulse Dark</option>
               <option value="crt">CRT Groen</option>
+              <option value="crt-orange">CRT Oranje</option>
             </select>
           </div>
           <NavLink to="/">Accounts</NavLink>
