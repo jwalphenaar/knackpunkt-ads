@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { getCampaignRedFlags } from '../lib/redFlags'
+import { buildAlerts, summarizeAlerts } from '../lib/alerts'
 
 const fmt = (n) => n ? Number(n).toLocaleString('nl-NL') : '0'
 const eur = (n) => n ? `€${Number(n).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '€0,00'
@@ -66,7 +67,7 @@ export default function AccountDetail() {
 
     const { data: campData, error: campError } = await supabase
       .from('linkedin_ad_campaigns')
-      .select('id, name, status, last_modified_at, creative_selection, audience_expansion_enabled, off_platform_delivery_enabled, cost_type, locale_language, locale_country, targeting_criteria')
+      .select('id, account_id, name, status, last_modified_at, creative_selection, audience_expansion_enabled, off_platform_delivery_enabled, cost_type, locale_language, locale_country, targeting_criteria, run_schedule_end, run_schedule_start, total_budget_amount, total_budget_currency')
       .eq('account_id', id)
       .order('last_modified_at', { ascending: false })
 
@@ -256,6 +257,18 @@ export default function AccountDetail() {
     }))
   }, [activeCampaigns])
 
+  const alerts = useMemo(() => {
+    if (!account) return []
+    return buildAlerts({
+      accounts: [account],
+      campaigns,
+      analytics,
+      accountId: id,
+    })
+  }, [account, campaigns, analytics, id])
+
+  const alertSummary = useMemo(() => summarizeAlerts(alerts), [alerts])
+
   const spendValue = eur(totals.cost)
   const impressionsValue = fmt(totals.impressions)
   const clicksValue = fmt(totals.clicks)
@@ -309,6 +322,39 @@ export default function AccountDetail() {
             {' · '}Overgeslagen: {syncJob.progress.campaigns_skipped || 0}
             {' · '}Analytics rows: {syncJob.progress.analytics_rows_synced || 0}
             {' · '}Demo rows: {syncJob.progress.demographics_rows_synced || 0}
+          </div>
+        )}
+
+        {alerts.length > 0 && (
+          <div className="alerts-strip">
+            <div className="alerts-strip-header">
+              <div>
+                <div className="zenith-eyebrow">Alerts</div>
+                <h2 className="alerts-strip-title">Open aandachtspunten voor dit account</h2>
+              </div>
+              <div className="alerts-strip-stats">
+                <span className="alert-chip alert-chip-critical">{alertSummary.critical || 0} critical</span>
+                <span className="alert-chip alert-chip-warning">{alertSummary.warning || 0} warning</span>
+                <span className="alert-chip alert-chip-info">{alertSummary.info || 0} info</span>
+              </div>
+            </div>
+            <div className="alerts-strip-list">
+              {alerts.slice(0, 4).map((alert) => (
+                <div key={alert.id} className={`alert-card alert-card-${alert.severity}`}>
+                  <div className="alert-card-top">
+                    <span className={`alert-chip alert-chip-${alert.severity}`}>{alert.severity}</span>
+                    {alert.campaign_name && <span className="alert-card-entity">{alert.campaign_name}</span>}
+                  </div>
+                  <div className="alert-card-title">{alert.title}</div>
+                  <div className="alert-card-detail">{alert.detail}</div>
+                  {alert.campaign_id && (
+                    <button className="targeting-link-btn" onClick={() => navigate(`/campaigns/${alert.campaign_id}`)}>
+                      Open campagne
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -8,6 +8,7 @@ import ResolveData from './pages/ResolveData'
 import Totals from './pages/Totals'
 import Monitoring from './pages/Monitoring'
 import AIAudienceBuilder from './pages/AIAudienceBuilder'
+import Alerts from './pages/Alerts'
 import './App.css'
 
 const THEME_STORAGE_KEY = 'knackpunkt_pulse_theme'
@@ -45,6 +46,7 @@ export default function App() {
           <NavLink to="/">Accounts</NavLink>
           <NavLink to="/campaigns">Campagnes</NavLink>
           <NavLink to="/monitoring">Monitoring</NavLink>
+          <NavLink to="/alerts">Alerts</NavLink>
           <NavLink to="/ai-builder">AI Builder</NavLink>
           <NavLink to="/totals">Totalen</NavLink>
           <NavLink to="/resolve-data">Resolve Data</NavLink>
@@ -56,6 +58,7 @@ export default function App() {
             <Route path="/" element={<Accounts />} />
             <Route path="/accounts-hidden" element={<Accounts hiddenMode />} />
             <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/alerts" element={<Alerts />} />
             <Route path="/ai-builder" element={<AIAudienceBuilder />} />
             <Route path="/totals" element={<Totals />} />
             <Route path="/accounts/:id" element={<AccountDetail />} />

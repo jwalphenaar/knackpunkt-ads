@@ -353,6 +353,97 @@ code {
 .zenith-progress { margin-top: 16px; height: 6px; background: #2c3040; border-radius: 999px; overflow: hidden; }
 .zenith-progress span { display: block; height: 100%; background: #ff7f3a; box-shadow: 0 0 8px rgba(255, 127, 58, 0.8); }
 
+.alerts-strip {
+  margin: 10px 0 20px;
+  background: rgba(16, 19, 26, 0.88);
+  border: 1px solid rgba(255, 127, 58, 0.22);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.alerts-strip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.alerts-strip-title {
+  margin: 2px 0 0;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1.1;
+  font-family: "Space Grotesk", Inter, sans-serif;
+}
+.alerts-strip-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.alerts-strip-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.alert-card {
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(22, 26, 36, 0.92);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.alert-card-critical { border-color: rgba(239, 68, 68, 0.38); }
+.alert-card-warning { border-color: rgba(245, 158, 11, 0.36); }
+.alert-card-info { border-color: rgba(125, 211, 252, 0.28); }
+.alert-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.alert-card-entity {
+  font-size: 12px;
+  color: #c4c9ac;
+  font-family: "JetBrains Mono", monospace;
+}
+.alert-card-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.alert-card-detail {
+  color: #aeb4c3;
+  font-size: 13px;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.alert-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid transparent;
+}
+.alert-chip-critical {
+  background: rgba(239, 68, 68, 0.14);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.32);
+}
+.alert-chip-warning {
+  background: rgba(245, 158, 11, 0.14);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.32);
+}
+.alert-chip-info {
+  background: rgba(125, 211, 252, 0.12);
+  color: #7dd3fc;
+  border-color: rgba(125, 211, 252, 0.28);
+}
+
 .zenith-table-wrap {
   background: rgba(16, 19, 26, 0.85);
   border: 1px solid rgba(255, 127, 58, 0.28);
@@ -490,6 +581,7 @@ code {
   .zenith-value,
   .zenith-value-compact { font-size: clamp(24px, 3.2vw, 36px); }
   .zenith-card-spend .zenith-value { font-size: clamp(32px, 4vw, 44px); }
+  .alerts-strip-list { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .zenith-kpi-grid { grid-template-columns: 1fr; }
@@ -502,6 +594,7 @@ code {
   .zenith-value-compact { font-size: 32px; }
   .zenith-value-tight { font-size: 28px; }
   .zenith-value-extra-tight { font-size: 24px; }
+  .alerts-strip-header { flex-direction: column; }
 }
 
 /* Campaign detail readability */
