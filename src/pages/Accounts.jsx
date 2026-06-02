@@ -42,6 +42,15 @@ function writeAccountsCache(hiddenMode, payload) {
   }
 }
 
+function clearAccountsCache() {
+  try {
+    localStorage.removeItem(getAccountsCacheKey(false))
+    localStorage.removeItem(getAccountsCacheKey(true))
+  } catch {
+    // ignore cache remove failures
+  }
+}
+
 export default function Accounts({ hiddenMode = false }) {
   const navigate = useNavigate()
   const [accounts, setAccounts] = useState([])
@@ -190,21 +199,14 @@ export default function Accounts({ hiddenMode = false }) {
       const res = await fetch(`${API}/api/linkedin-ads/db/accounts/${accountId}/visibility`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hidden }),
+        body: JSON.stringify({ hidden, currentHiddenMode: hiddenMode }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Account status wijzigen mislukt.')
 
-      const payload = {
-        accounts: data.accounts || [],
-        campaignCountByAccount: data.campaignCountByAccount || {},
-        spendByAccount: data.spendByAccount || {},
-        totals: data.totals || { campaigns: 0, spend: 0 },
-      }
-      applyAccountsPayload(payload)
-      writeAccountsCache(hiddenMode, payload)
-      setCacheInfo({ source: 'live', storedAt: Date.now() })
+      clearAccountsCache()
       setSuccess(hidden ? 'Account uitgezet.' : 'Account weer aangezet.')
+      await loadAccounts({ background: false, runSync: false })
     } catch (e) {
       setError(e.message || 'Account status wijzigen mislukt.')
     }
