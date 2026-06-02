@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const ACCOUNTS_CACHE_TTL_MS = 10 * 60 * 1000
+const ACCOUNTS_CACHE_BUST_KEY = 'knackpunkt_pulse_accounts_cache_bust_at'
 const API = import.meta.env.VITE_API_URL
 
 const STATUS_COLORS = {
@@ -25,6 +26,8 @@ function readAccountsCache(hiddenMode) {
     if (!raw) return null
     const parsed = JSON.parse(raw)
     if (!parsed?.storedAt || !parsed?.payload) return null
+    const cacheBustAt = Number(localStorage.getItem(ACCOUNTS_CACHE_BUST_KEY) || 0)
+    if (cacheBustAt && Number(parsed.storedAt) < cacheBustAt) return null
     return parsed
   } catch {
     return null
@@ -46,6 +49,7 @@ function clearAccountsCache() {
   try {
     localStorage.removeItem(getAccountsCacheKey(false))
     localStorage.removeItem(getAccountsCacheKey(true))
+    localStorage.setItem(ACCOUNTS_CACHE_BUST_KEY, String(Date.now()))
   } catch {
     // ignore cache remove failures
   }
@@ -77,6 +81,28 @@ export default function Accounts({ hiddenMode = false }) {
     setCampaignCountByAccount(payload?.campaignCountByAccount || {})
     setSpendByAccount(payload?.spendByAccount || {})
     setTotals(payload?.totals || { campaigns: 0, spend: 0 })
+  }
+
+  const removeAccountFromCurrentView = (accountId) => {
+    const accountKey = String(accountId)
+    const currentCampaigns = Number(campaignCountByAccount[accountKey] || 0)
+    const currentSpend = Number(spendByAccount[accountKey] || 0)
+
+    setAccounts((prev) => prev.filter((row) => String(row.id) !== accountKey))
+    setCampaignCountByAccount((prev) => {
+      const next = { ...prev }
+      delete next[accountKey]
+      return next
+    })
+    setSpendByAccount((prev) => {
+      const next = { ...prev }
+      delete next[accountKey]
+      return next
+    })
+    setTotals((prev) => ({
+      campaigns: Math.max(0, Number(prev.campaigns || 0) - currentCampaigns),
+      spend: Math.max(0, Number(prev.spend || 0) - currentSpend),
+    }))
   }
 
   const hideModeLabel = hiddenMode ? 'uitgezette accounts' : 'accounts'
@@ -205,8 +231,9 @@ export default function Accounts({ hiddenMode = false }) {
       if (!res.ok) throw new Error(data.error || 'Account status wijzigen mislukt.')
 
       clearAccountsCache()
+      removeAccountFromCurrentView(accountId)
       setSuccess(hidden ? 'Account uitgezet.' : 'Account weer aangezet.')
-      await loadAccounts({ background: false, runSync: false })
+      loadAccounts({ background: true, runSync: false })
     } catch (e) {
       setError(e.message || 'Account status wijzigen mislukt.')
     }
