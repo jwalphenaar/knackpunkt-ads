@@ -18,7 +18,7 @@ async function fetchVisibleAccounts() {
   const res = await fetch(`${API}/api/linkedin-ads/db/accounts-overview?hidden=false`)
   const data = await res.json()
   if (!res.ok) throw new Error(data.error || 'Accounts laden mislukt.')
-  return data.accounts || []
+  return (data.accounts || []).filter((account) => account?.hidden !== true)
 }
 
 export default function Alerts() {
@@ -35,6 +35,7 @@ export default function Alerts() {
       try {
         const accounts = await fetchVisibleAccounts()
         const visibleAccountIds = accounts.map((account) => Number(account.id)).filter(Boolean)
+        const visibleAccountIdSet = new Set(visibleAccountIds.map(String))
 
         if (!visibleAccountIds.length) {
           setAlerts([])
@@ -78,12 +79,14 @@ export default function Alerts() {
           }
         }
 
-        setAlerts(buildAlerts({
+        const visibleAlerts = buildAlerts({
           accounts,
           campaigns,
           analytics,
           includeBudgetAlerts: false,
-        }))
+        }).filter((alert) => visibleAccountIdSet.has(String(alert.account_id)))
+
+        setAlerts(visibleAlerts)
       } catch (e) {
         setError(e.message || 'Alerts laden mislukt.')
         setAlerts([])
