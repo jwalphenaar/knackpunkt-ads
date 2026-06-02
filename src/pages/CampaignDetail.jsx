@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ComposedChart, Line, CartesianGrid, Legend } from 'recharts'
 import { getCampaignRedFlags } from '../lib/redFlags'
 
 const fmt = (n) => n ? Number(n).toLocaleString('nl-NL') : '—'
@@ -20,7 +20,6 @@ const COMPANY_SIZE_MAP = {
 }
 
 const SIZE_ORDER = ['SIZE_1','SIZE_2_TO_10','SIZE_11_TO_50','SIZE_51_TO_200','SIZE_201_TO_500','SIZE_501_TO_1000','SIZE_1001_TO_5000','SIZE_5001_TO_10000','SIZE_10001_OR_MORE']
-const COLORS = ['#0077b5','#00a0dc','#f59e0b','#22c55e','#ef4444','#a855f7','#f97316','#06b6d4','#84cc16','#ec4899']
 const TARGETING_KEY_LABELS = {
   include: 'Include',
   exclude: 'Exclude',
@@ -66,6 +65,7 @@ const STATUS_COLORS = {
 }
 
 const API = import.meta.env.VITE_API_URL
+const shortLabel = (label, max = 28) => (label?.length > max ? `${label.slice(0, max - 1)}…` : label)
 
 function aggregateDemographicRows(rows = []) {
   const byValue = new Map()
@@ -121,7 +121,9 @@ const resolveGroup = async (type, endpoint, items) => {
     const res = await fetch(`${API}/api/linkedin-ads/resolve/${endpoint}?ids=${ids.join(',')}`)
     const map = await res.json()
     setResolvedLabels(prev => ({ ...prev, [type]: { ...(prev[type] || {}), ...map } }))
-  } catch (e) {}
+  } catch {
+    return
+  }
 }
 
   const loadData = useCallback(async () => {
@@ -275,14 +277,6 @@ const resolveGroup = async (type, endpoint, items) => {
   if (loading) return <div className="loading">Loading...</div>
   if (!campaign) return <div className="loading">Campaign not found.</div>
 
-  const resolveLabel = (pivotType, pivotValue) => {
-    const val = pivotValue.split(':').pop()
-    if (pivotType === 'MEMBER_SENIORITY') return SENIORITY_MAP[val] || val
-    if (pivotType === 'MEMBER_COMPANY_SIZE') return COMPANY_SIZE_MAP[val] || val
-    if (resolvedLabels[pivotType]?.[val]) return resolvedLabels[pivotType][val]
-    return val
-  }
-
   const handleSort = (field) => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortField(field); setSortDir('desc') }
@@ -352,6 +346,14 @@ const resolveGroup = async (type, endpoint, items) => {
     })
   )
 
+  const resolveLabel = (pivotType, pivotValue) => {
+    const val = pivotValue.split(':').pop()
+    if (pivotType === 'MEMBER_SENIORITY') return SENIORITY_MAP[val] || val
+    if (pivotType === 'MEMBER_COMPANY_SIZE') return COMPANY_SIZE_MAP[val] || val
+    if (resolvedLabels[pivotType]?.[val]) return resolvedLabels[pivotType][val]
+    return val
+  }
+
   const totals = filteredAnalytics.reduce((acc, row) => {
     acc.impressions += row.impressions || 0
     acc.clicks += row.clicks || 0
@@ -367,7 +369,35 @@ const resolveGroup = async (type, endpoint, items) => {
     acc.engagements += row.total_engagements || 0
     return acc
   }, { impressions: 0, clicks: 0, cost: 0, leads: 0, lead_opens: 0, conversions: 0, likes: 0, follows: 0, video_views: 0, video_completions: 0, reach: 0, engagements: 0 })
-  const redFlags = getCampaignRedFlags(campaign)
+  const redFlags = getCampaignRedFlags(campaign || {})
+  const trendData = [...filteredAnalytics]
+    .sort((a, b) => new Date(a.date_start) - new Date(b.date_start))
+    .map((row) => ({
+      date: new Date(row.date_start).toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' }),
+      fullDate: new Date(row.date_start).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric' }),
+      impressions: Number(row.impressions || 0),
+      clicks: Number(row.clicks || 0),
+      cost: Number(row.cost_in_local_currency || 0),
+      ctr: row.impressions > 0 ? Number(((row.clicks / row.impressions) * 100).toFixed(2)) : 0,
+      leads: Number(row.one_click_leads || 0),
+      videoViews: Number(row.video_views || 0),
+    }))
+
+  const topJobTitleChart = [...(filteredDemographics.MEMBER_JOB_TITLE || [])]
+    .sort((a, b) => b.impressions - a.impressions)
+    .slice(0, 8)
+    .map((row) => {
+      const label = resolveLabel('MEMBER_JOB_TITLE', row.pivot_value)
+      return { label: shortLabel(label, 26), fullLabel: label, impressions: Number(row.impressions || 0) }
+    })
+
+  const topCompanyChart = [...(filteredDemographics.MEMBER_COMPANY || [])]
+    .sort((a, b) => b.impressions - a.impressions)
+    .slice(0, 8)
+    .map((row) => {
+      const label = resolveLabel('MEMBER_COMPANY', row.pivot_value)
+      return { label: shortLabel(label, 26), fullLabel: label, impressions: Number(row.impressions || 0) }
+    })
 
   const targetingEntries = campaign?.targeting_criteria
     ? Object.entries(campaign.targeting_criteria)
@@ -556,6 +586,27 @@ const resolveGroup = async (type, endpoint, items) => {
     return <span>{String(value)}</span>
   }
 
+  const chartTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null
+    return (
+      <div className="chart-tooltip">
+        <div className="chart-tooltip-title">{payload[0]?.payload?.fullDate || label}</div>
+        {payload.map((item) => (
+          <div key={item.dataKey} className="chart-tooltip-row">
+            <span className="chart-tooltip-key">{item.name}</span>
+            <strong>
+              {item.dataKey === 'cost'
+                ? eur(item.value)
+                : item.dataKey === 'ctr'
+                  ? `${Number(item.value || 0).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
+                  : fmt(item.value)}
+            </strong>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="campaign-detail-page">
       <button className="back-btn" onClick={() => navigate('/campaigns')}>← Back</button>
@@ -709,9 +760,139 @@ const resolveGroup = async (type, endpoint, items) => {
         <div className="kpi-card"><div className="kpi-label">Engagement rate</div><div className="kpi-value">{pct(totals.engagements, totals.impressions)}</div></div>
       </div>
 
+      <div className="campaign-chart-grid">
+        <div className="chart-panel chart-panel-wide">
+          <div className="chart-panel-head">
+            <div>
+              <h3 className="chart-panel-title">Dagelijkse performance</h3>
+              <p className="chart-panel-subtitle">Impressies, clicks en spend over de gekozen periode.</p>
+            </div>
+          </div>
+          {trendData.length > 0 ? (
+            <div className="chart-canvas">
+              <ResponsiveContainer width="100%" height={320}>
+                <ComposedChart data={trendData}>
+                  <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
+                  <XAxis dataKey="date" stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="traffic" stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="cost" orientation="right" stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                  <Tooltip content={chartTooltip} />
+                  <Legend wrapperStyle={{ color: 'var(--chart-axis)', fontSize: 12 }} />
+                  <Bar yAxisId="traffic" dataKey="impressions" name="Impressions" fill="var(--chart-accent-soft)" radius={[6, 6, 0, 0]} />
+                  <Line yAxisId="traffic" type="monotone" dataKey="clicks" name="Clicks" stroke="var(--chart-accent-2)" strokeWidth={3} dot={false} />
+                  <Line yAxisId="cost" type="monotone" dataKey="cost" name="Spend" stroke="var(--chart-accent)" strokeWidth={3} dot={false} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="chart-empty">Geen analytics in deze periode.</div>
+          )}
+        </div>
+
+        <div className="chart-panel">
+          <div className="chart-panel-head">
+            <div>
+              <h3 className="chart-panel-title">Efficiëntie</h3>
+              <p className="chart-panel-subtitle">CTR, leads en video views op dagbasis.</p>
+            </div>
+          </div>
+          {trendData.length > 0 ? (
+            <div className="chart-canvas">
+              <ResponsiveContainer width="100%" height={320}>
+                <ComposedChart data={trendData}>
+                  <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
+                  <XAxis dataKey="date" stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="volume" stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="ratio" orientation="right" stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                  <Tooltip content={chartTooltip} />
+                  <Legend wrapperStyle={{ color: 'var(--chart-axis)', fontSize: 12 }} />
+                  <Bar yAxisId="volume" dataKey="videoViews" name="Video views" fill="var(--chart-accent-soft-alt)" radius={[6, 6, 0, 0]} />
+                  <Bar yAxisId="volume" dataKey="leads" name="Leads" fill="var(--chart-accent-3-soft)" radius={[6, 6, 0, 0]} />
+                  <Line yAxisId="ratio" type="monotone" dataKey="ctr" name="CTR" stroke="var(--chart-accent-3)" strokeWidth={3} dot={false} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="chart-empty">Geen analytics in deze periode.</div>
+          )}
+        </div>
+      </div>
+
+      {(topJobTitleChart.length > 0 || topCompanyChart.length > 0) && (
+        <div className="campaign-chart-grid audience-chart-grid">
+          {topJobTitleChart.length > 0 && (
+            <div className="chart-panel">
+              <div className="chart-panel-head">
+                <div>
+                  <h3 className="chart-panel-title">Top job titles</h3>
+                  <p className="chart-panel-subtitle">Top 8 op basis van impressies.</p>
+                </div>
+              </div>
+              <div className="chart-canvas">
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={topJobTitleChart} layout="vertical" margin={{ left: 8, right: 12, top: 8, bottom: 8 }}>
+                    <CartesianGrid stroke="var(--chart-grid)" horizontal={false} />
+                    <XAxis type="number" stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                    <YAxis type="category" dataKey="label" width={140} stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                    <Tooltip content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null
+                      const item = payload[0]?.payload
+                      return (
+                        <div className="chart-tooltip">
+                          <div className="chart-tooltip-title">{item.fullLabel}</div>
+                          <div className="chart-tooltip-row">
+                            <span className="chart-tooltip-key">Impressions</span>
+                            <strong>{fmt(item.impressions)}</strong>
+                          </div>
+                        </div>
+                      )
+                    }} />
+                    <Bar dataKey="impressions" name="Impressions" fill="var(--chart-accent-2)" radius={[0, 6, 6, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {topCompanyChart.length > 0 && (
+            <div className="chart-panel">
+              <div className="chart-panel-head">
+                <div>
+                  <h3 className="chart-panel-title">Top companies</h3>
+                  <p className="chart-panel-subtitle">Top 8 op basis van impressies.</p>
+                </div>
+              </div>
+              <div className="chart-canvas">
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={topCompanyChart} layout="vertical" margin={{ left: 8, right: 12, top: 8, bottom: 8 }}>
+                    <CartesianGrid stroke="var(--chart-grid)" horizontal={false} />
+                    <XAxis type="number" stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                    <YAxis type="category" dataKey="label" width={140} stroke="var(--chart-axis)" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} tickLine={false} axisLine={false} />
+                    <Tooltip content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null
+                      const item = payload[0]?.payload
+                      return (
+                        <div className="chart-tooltip">
+                          <div className="chart-tooltip-title">{item.fullLabel}</div>
+                          <div className="chart-tooltip-row">
+                            <span className="chart-tooltip-key">Impressions</span>
+                            <strong>{fmt(item.impressions)}</strong>
+                          </div>
+                        </div>
+                      )
+                    }} />
+                    <Bar dataKey="impressions" name="Impressions" fill="var(--chart-accent)" radius={[0, 6, 6, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
 {creatives.length > 0 && (
   <div style={{ marginBottom: 32 }}>
-    <h2 className="section-title">Creatives <span className="count">{creatives.length}</span></h2>
+    <h2 className="section-title">Creatives <span className="count">{creativesCount ?? creatives.length}</span></h2>
     <div className="table-wrapper">
       <table className="data-table" style={{ width: '100%' }}>
         <thead>

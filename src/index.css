@@ -10,6 +10,18 @@
   --accent-bg: rgba(170, 59, 255, 0.1);
   --accent-border: rgba(170, 59, 255, 0.5);
   --social-bg: rgba(244, 243, 236, 0.5);
+  --chart-surface: rgba(20, 25, 35, 0.82);
+  --chart-border: rgba(255, 127, 58, 0.24);
+  --chart-grid: rgba(125, 211, 252, 0.12);
+  --chart-axis: #b8c0d2;
+  --chart-text: #f3f6fb;
+  --chart-muted: #9ca8bb;
+  --chart-accent: #ff9f66;
+  --chart-accent-2: #7dd3fc;
+  --chart-accent-3: #22c55e;
+  --chart-accent-soft: rgba(255, 159, 102, 0.35);
+  --chart-accent-soft-alt: rgba(125, 211, 252, 0.4);
+  --chart-accent-3-soft: rgba(34, 197, 94, 0.35);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
@@ -562,6 +574,103 @@ code {
   color: #d7ddea;
 }
 
+.campaign-chart-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr);
+  gap: 16px;
+  margin: 18px 0 26px;
+}
+
+.campaign-chart-grid.audience-chart-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0;
+}
+
+.chart-panel {
+  background: var(--chart-surface);
+  border: 1px solid var(--chart-border);
+  border-radius: 14px;
+  padding: 18px 18px 12px;
+  min-width: 0;
+}
+
+.chart-panel-wide {
+  min-width: 0;
+}
+
+.chart-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.chart-panel-title {
+  margin: 0;
+  color: var(--chart-text);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.chart-panel-subtitle {
+  margin-top: 4px;
+  color: var(--chart-muted);
+  font-size: 13px;
+}
+
+.chart-canvas {
+  width: 100%;
+  height: 320px;
+}
+
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 320px;
+  color: var(--chart-muted);
+  font-size: 14px;
+}
+
+.chart-tooltip {
+  min-width: 180px;
+  border-radius: 10px;
+  border: 1px solid var(--chart-border);
+  background: rgba(9, 12, 18, 0.96);
+  color: #edf3ff;
+  padding: 10px 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.chart-tooltip-title {
+  font-size: 12px;
+  color: #c4d0e5;
+  margin-bottom: 8px;
+}
+
+.chart-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.chart-tooltip-row + .chart-tooltip-row {
+  margin-top: 4px;
+}
+
+.chart-tooltip-key {
+  color: #c4d0e5;
+}
+
+@media (max-width: 1200px) {
+  .campaign-chart-grid,
+  .campaign-chart-grid.audience-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .targeting-link-btn {
   border: 1px solid rgba(255,127,58,0.45);
   background: rgba(255,127,58,0.14);
@@ -639,6 +748,18 @@ code {
 body.theme-crt {
   color: #d6ffe1;
   background: #030806;
+  --chart-surface: rgba(9, 20, 11, 0.9);
+  --chart-border: rgba(121, 255, 159, 0.3);
+  --chart-grid: rgba(121, 255, 159, 0.12);
+  --chart-axis: #b9ffcb;
+  --chart-text: #d7ffdf;
+  --chart-muted: #94dba8;
+  --chart-accent: #9cffb7;
+  --chart-accent-2: #d7ffdf;
+  --chart-accent-3: #79ff9f;
+  --chart-accent-soft: rgba(121, 255, 159, 0.3);
+  --chart-accent-soft-alt: rgba(180, 255, 200, 0.28);
+  --chart-accent-3-soft: rgba(121, 255, 159, 0.18);
 }
 body.theme-crt .content {
   background: #030806;
@@ -759,6 +880,18 @@ body.theme-crt .targeting-chip {
 body.theme-crt-orange {
   color: #ffe7cc;
   background: #090603;
+  --chart-surface: rgba(24, 16, 10, 0.9);
+  --chart-border: rgba(255, 184, 107, 0.28);
+  --chart-grid: rgba(255, 184, 107, 0.12);
+  --chart-axis: #ffd5a4;
+  --chart-text: #fff0dd;
+  --chart-muted: #dfb684;
+  --chart-accent: #ffb86b;
+  --chart-accent-2: #ffd8ab;
+  --chart-accent-3: #ff9f66;
+  --chart-accent-soft: rgba(255, 184, 107, 0.32);
+  --chart-accent-soft-alt: rgba(255, 216, 171, 0.28);
+  --chart-accent-3-soft: rgba(255, 159, 102, 0.18);
 }
 body.theme-crt-orange .content {
   background: #090603;
@@ -874,4 +1007,169 @@ body.theme-crt-orange .targeting-chip {
   border-color: rgba(255, 184, 107, 0.26);
   color: #ffe1bb;
   background: rgba(255, 184, 107, 0.08);
+}
+
+body.theme-white {
+  color: #1f2937;
+  background: #f5f7fb;
+  --chart-surface: rgba(255, 255, 255, 0.96);
+  --chart-border: rgba(15, 23, 42, 0.08);
+  --chart-grid: rgba(148, 163, 184, 0.22);
+  --chart-axis: #64748b;
+  --chart-text: #0f172a;
+  --chart-muted: #64748b;
+  --chart-accent: #ff7f3a;
+  --chart-accent-2: #3b82f6;
+  --chart-accent-3: #16a34a;
+  --chart-accent-soft: rgba(255, 127, 58, 0.2);
+  --chart-accent-soft-alt: rgba(59, 130, 246, 0.2);
+  --chart-accent-3-soft: rgba(22, 163, 74, 0.16);
+}
+body.theme-white .content {
+  background: #f5f7fb;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+body.theme-white .zenith-page {
+  background: transparent;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+}
+body.theme-white .table-wrapper,
+body.theme-white .kpi-card,
+body.theme-white .demo-card,
+body.theme-white .info-card,
+body.theme-white .dropdown-filters select,
+body.theme-white .account-form input,
+body.theme-white .account-form select,
+body.theme-white .zenith-table-wrap,
+body.theme-white .targeting-group,
+body.theme-white .chart-panel {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #1f2937;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+body.theme-white .page-title,
+body.theme-white .section-title,
+body.theme-white .zenith-title,
+body.theme-white .zenith-account,
+body.theme-white .zenith-table-title,
+body.theme-white .zenith-campaign-name,
+body.theme-white .zenith-value,
+body.theme-white .detail-title,
+body.theme-white .chart-panel-title {
+  color: #0f172a;
+}
+body.theme-white .zenith-eyebrow,
+body.theme-white .zenith-accent {
+  color: #ff7f3a;
+}
+body.theme-white .subtitle,
+body.theme-white .zenith-subtle,
+body.theme-white .detail-account,
+body.theme-white .chart-panel-subtitle,
+body.theme-white .chart-tooltip-key {
+  color: #64748b;
+}
+body.theme-white .count,
+body.theme-white .badge {
+  background: rgba(59, 130, 246, 0.08);
+  color: #31547f;
+}
+body.theme-white .data-table th,
+body.theme-white .zenith-table th {
+  background: rgba(248, 250, 252, 0.96);
+  color: #64748b;
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+body.theme-white .data-table td,
+body.theme-white .zenith-table td {
+  border-bottom-color: rgba(15, 23, 42, 0.06);
+  color: #1f2937;
+}
+body.theme-white .data-table tr:hover td,
+body.theme-white .zenith-table tr:hover td {
+  background: rgba(59, 130, 246, 0.04);
+}
+body.theme-white .back-btn,
+body.theme-white .filter-btn,
+body.theme-white .targeting-link-btn {
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #334155;
+  background: #fff;
+}
+body.theme-white .filter-btn.active,
+body.theme-white .targeting-link-btn:hover,
+body.theme-white .back-btn:hover {
+  background: rgba(255, 127, 58, 0.1);
+  border-color: rgba(255, 127, 58, 0.22);
+  color: #d9651c;
+}
+body.theme-white .detail-hero,
+body.theme-white .info-card-blue {
+  background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.96) 100%) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+}
+body.theme-white .detail-account-name,
+body.theme-white .zenith-label,
+body.theme-white .zenith-campaign-id,
+body.theme-white .meta-tag,
+body.theme-white .info-card-blue h3,
+body.theme-white .info-card-blue .info-rows span,
+body.theme-white .info-card-blue .info-rows strong,
+body.theme-white .campaign-detail-page .kpi-label {
+  color: #64748b !important;
+}
+body.theme-white .zenith-period-select {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  color: #334155;
+}
+body.theme-white .zenith-progress {
+  background: rgba(148, 163, 184, 0.22);
+}
+body.theme-white .zenith-progress span {
+  background: #ff7f3a;
+  box-shadow: none;
+}
+body.theme-white .campaign-detail-page .kpi-value,
+body.theme-white .campaign-detail-page .demo-card h3,
+body.theme-white .campaign-detail-page .demo-table td,
+body.theme-white .campaign-detail-page .demo-company-name,
+body.theme-white .chart-tooltip-title {
+  color: #0f172a !important;
+}
+body.theme-white .campaign-detail-page .demo-table,
+body.theme-white .targeting-json {
+  border-color: rgba(15, 23, 42, 0.08);
+  background: rgba(248, 250, 252, 0.98);
+  color: #1f2937;
+}
+body.theme-white .campaign-detail-page .demo-table tr:nth-child(odd) td,
+body.theme-white .campaign-detail-page .demo-table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.98);
+}
+body.theme-white .campaign-detail-page .demo-table .demo-val,
+body.theme-white .demo-company-id-link {
+  color: #2563eb !important;
+}
+body.theme-white .targeting-op {
+  border-color: rgba(255, 127, 58, 0.25);
+  color: #d9651c;
+}
+body.theme-white .targeting-op-soft,
+body.theme-white .targeting-chip {
+  border-color: rgba(59, 130, 246, 0.18);
+  color: #31547f;
+  background: rgba(59, 130, 246, 0.06);
+}
+body.theme-white .chart-tooltip {
+  background: rgba(255, 255, 255, 0.98);
+  color: #0f172a;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
 }
