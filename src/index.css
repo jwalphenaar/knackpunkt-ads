@@ -338,11 +338,15 @@ code {
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0;
+  display: block;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
 }
 .zenith-value-compact { font-size: clamp(24px, 1.8vw, 40px); }
+.zenith-value-tight { font-size: clamp(22px, 1.45vw, 32px); }
+.zenith-value-extra-tight { font-size: clamp(18px, 1.15vw, 26px); }
 .zenith-accent { color: #ff9f66; }
 .zenith-subtle { margin-top: 8px; color: #8e9379; font-size: 12px; }
 .zenith-progress { margin-top: 16px; height: 6px; background: #2c3040; border-radius: 999px; overflow: hidden; }
@@ -467,6 +471,8 @@ code {
   .zenith-title { font-size: 40px; }
   .zenith-value { font-size: 34px; }
   .zenith-value-compact { font-size: clamp(22px, 1.6vw, 34px); }
+  .zenith-value-tight { font-size: clamp(20px, 1.3vw, 28px); }
+  .zenith-value-extra-tight { font-size: clamp(18px, 1.05vw, 24px); }
 }
 @media (max-width: 1024px) {
   .zenith-page { margin: -20px; padding: 16px; }
@@ -483,6 +489,8 @@ code {
   .zenith-table th, .zenith-table td { padding: 12px; }
   .zenith-campaign-name { font-size: 20px; }
   .zenith-value-compact { font-size: 32px; }
+  .zenith-value-tight { font-size: 28px; }
+  .zenith-value-extra-tight { font-size: 24px; }
 }
 
 /* Campaign detail readability */

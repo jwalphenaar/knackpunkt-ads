@@ -4,6 +4,12 @@ import { supabase } from '../lib/supabase'
 const fmt = (n) => n ? Number(n).toLocaleString('nl-NL') : '0'
 const eur = (n) => n ? `€${Number(n).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '€0,00'
 const pct = (a, b) => (a && b && b > 0) ? `${((a / b) * 100).toFixed(2)}%` : '0%'
+const metricValueClass = (value) => {
+  const length = String(value || '').replace(/\s/g, '').length
+  if (length >= 10) return 'zenith-value-extra-tight'
+  if (length >= 8) return 'zenith-value-tight'
+  return ''
+}
 
 const periodOptions = [
   ['this_month', 'Deze maand'],
@@ -177,6 +183,19 @@ export default function Totals() {
     [totals.videoViews]
   )
 
+  const spendValue = eur(totals.cost)
+  const impressionsValue = fmt(totals.impressions)
+  const clicksValue = fmt(totals.clicks)
+  const ctrValue = pct(totals.clicks, totals.impressions)
+  const leadsValue = fmt(totals.leads)
+  const leadFormOpensValue = fmt(totals.leadFormOpens)
+  const videoViewsValue = fmt(totals.videoViews)
+  const landingPageClicksValue = fmt(totals.landingPageClicks)
+  const activeCampaignsValue = fmt(activeCampaignCount)
+  const averageCpcValue = totals.clicks > 0 ? eur(totals.cost / totals.clicks) : '€0,00'
+  const averageCpmValue = totals.impressions > 0 ? eur((totals.cost / totals.impressions) * 1000) : '€0,00'
+  const estimatedVideoHoursValue = estimatedVideoHours.toFixed(1)
+
   if (loading) return <div className="loading">Totalen laden...</div>
 
   return (
@@ -201,21 +220,21 @@ export default function Totals() {
         <div className="zenith-kpi-grid">
           <div className="zenith-card zenith-card-spend">
             <div className="zenith-label">Total Ad Spend</div>
-            <div className="zenith-value zenith-accent">{eur(totals.cost)}</div>
+            <div className={`zenith-value zenith-accent ${metricValueClass(spendValue)}`}>{spendValue}</div>
             <div className="zenith-progress"><span style={{ width: `${Math.min(100, Math.round((totals.cost / 250000) * 100))}%` }} /></div>
             <div className="zenith-subtle">{fmt(accounts.length)} accounts · {fmt(campaigns.length)} campagnes</div>
           </div>
-          <div className="zenith-card"><div className="zenith-label">Impressions</div><div className="zenith-value zenith-value-compact">{fmt(totals.impressions)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Clicks</div><div className="zenith-value zenith-value-compact">{fmt(totals.clicks)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">CTR</div><div className="zenith-value zenith-value-compact zenith-accent">{pct(totals.clicks, totals.impressions)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Leads</div><div className="zenith-value zenith-value-compact">{fmt(totals.leads)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Lead Form Opens</div><div className="zenith-value zenith-value-compact">{fmt(totals.leadFormOpens)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Video Views</div><div className="zenith-value zenith-value-compact">{fmt(totals.videoViews)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Landing Page Clicks</div><div className="zenith-value zenith-value-compact">{fmt(totals.landingPageClicks)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Actieve Campagnes</div><div className="zenith-value zenith-value-compact">{fmt(activeCampaignCount)}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Gem. CPC</div><div className="zenith-value zenith-value-compact">{totals.clicks > 0 ? eur(totals.cost / totals.clicks) : '€0,00'}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Gem. CPM</div><div className="zenith-value zenith-value-compact">{totals.impressions > 0 ? eur((totals.cost / totals.impressions) * 1000) : '€0,00'}</div></div>
-          <div className="zenith-card"><div className="zenith-label">Video Uren (schatting)</div><div className="zenith-value zenith-value-compact">{estimatedVideoHours.toFixed(1)}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Impressions</div><div className={`zenith-value zenith-value-compact ${metricValueClass(impressionsValue)}`}>{impressionsValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Clicks</div><div className={`zenith-value zenith-value-compact ${metricValueClass(clicksValue)}`}>{clicksValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">CTR</div><div className={`zenith-value zenith-value-compact zenith-accent ${metricValueClass(ctrValue)}`}>{ctrValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Leads</div><div className={`zenith-value zenith-value-compact ${metricValueClass(leadsValue)}`}>{leadsValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Lead Form Opens</div><div className={`zenith-value zenith-value-compact ${metricValueClass(leadFormOpensValue)}`}>{leadFormOpensValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Video Views</div><div className={`zenith-value zenith-value-compact ${metricValueClass(videoViewsValue)}`}>{videoViewsValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Landing Page Clicks</div><div className={`zenith-value zenith-value-compact ${metricValueClass(landingPageClicksValue)}`}>{landingPageClicksValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Actieve Campagnes</div><div className={`zenith-value zenith-value-compact ${metricValueClass(activeCampaignsValue)}`}>{activeCampaignsValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Gem. CPC</div><div className={`zenith-value zenith-value-compact ${metricValueClass(averageCpcValue)}`}>{averageCpcValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Gem. CPM</div><div className={`zenith-value zenith-value-compact ${metricValueClass(averageCpmValue)}`}>{averageCpmValue}</div></div>
+          <div className="zenith-card"><div className="zenith-label">Video Uren (schatting)</div><div className={`zenith-value zenith-value-compact ${metricValueClass(estimatedVideoHoursValue)}`}>{estimatedVideoHoursValue}</div></div>
         </div>
 
         <div className="zenith-table-wrap">
@@ -256,4 +275,3 @@ export default function Totals() {
     </div>
   )
 }
-
