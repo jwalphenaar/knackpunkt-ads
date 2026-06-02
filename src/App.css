@@ -34,6 +34,8 @@ body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-s
 .sidebar a { color: #aaa; text-decoration: none; padding: 10px 12px; border-radius: 6px; font-size: 14px; transition: all 0.15s; }
 .sidebar a:hover { background: #1a1a1a; color: white; }
 .sidebar a.active { background: rgba(255, 127, 58, 0.2); color: #ff9f66; border: 1px solid rgba(255, 127, 58, 0.35); }
+.sidebar-spacer { flex: 1; }
+.sidebar-bottom-link { margin-top: auto; }
 
 .content { margin-left: 220px; padding: 32px; width: calc(100% - 220px); }
 

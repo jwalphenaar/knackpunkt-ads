@@ -163,6 +163,19 @@ code {
 .account-form input:focus, .account-form select:focus { outline: none; border-color: #0077b5; }
 .add-btn { border: 1px solid #0077b5; background: #0077b5; color: white; border-radius: 6px; padding: 8px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .add-btn:disabled { opacity: 0.7; cursor: default; }
+.row-action-btn {
+  border: 1px solid rgba(255, 127, 58, 0.28);
+  background: rgba(255, 127, 58, 0.1);
+  color: #ff9f66;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.row-action-btn:hover {
+  background: rgba(255, 127, 58, 0.16);
+}
 .form-msg { margin-bottom: 12px; font-size: 13px; }
 .form-error { color: #b91c1c; }
 .form-success { color: #166534; }
@@ -817,6 +830,14 @@ body.theme-crt .filter-btn {
   background: rgba(10, 23, 14, 0.88);
   color: #d4ffe0;
 }
+body.theme-crt .row-action-btn {
+  border-color: rgba(121, 255, 159, 0.32);
+  background: rgba(121, 255, 159, 0.08);
+  color: #b9ffcb;
+}
+body.theme-crt .row-action-btn:hover {
+  background: rgba(121, 255, 159, 0.14);
+}
 body.theme-crt .filter-btn span {
   background: rgba(121, 255, 159, 0.12);
   color: #b9ffcb;
@@ -948,6 +969,14 @@ body.theme-crt-orange .filter-btn {
   border-color: rgba(255, 184, 107, 0.28);
   background: rgba(24, 17, 10, 0.88);
   color: #ffe2bf;
+}
+body.theme-crt-orange .row-action-btn {
+  border-color: rgba(255, 184, 107, 0.3);
+  background: rgba(255, 184, 107, 0.1);
+  color: #ffd4a1;
+}
+body.theme-crt-orange .row-action-btn:hover {
+  background: rgba(255, 184, 107, 0.16);
 }
 body.theme-crt-orange .filter-btn span {
   background: rgba(255, 184, 107, 0.12);
@@ -1102,9 +1131,15 @@ body.theme-white .targeting-link-btn {
   color: #334155;
   background: #fff;
 }
+body.theme-white .row-action-btn {
+  border-color: rgba(255, 127, 58, 0.18);
+  background: rgba(255, 127, 58, 0.08);
+  color: #d9651c;
+}
 body.theme-white .filter-btn.active,
 body.theme-white .targeting-link-btn:hover,
-body.theme-white .back-btn:hover {
+body.theme-white .back-btn:hover,
+body.theme-white .row-action-btn:hover {
   background: rgba(255, 127, 58, 0.1);
   border-color: rgba(255, 127, 58, 0.22);
   color: #d9651c;

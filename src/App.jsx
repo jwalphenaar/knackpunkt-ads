@@ -48,10 +48,13 @@ export default function App() {
           <NavLink to="/ai-builder">AI Builder</NavLink>
           <NavLink to="/totals">Totalen</NavLink>
           <NavLink to="/resolve-data">Resolve Data</NavLink>
+          <div className="sidebar-spacer" />
+          <NavLink to="/accounts-hidden" className="sidebar-bottom-link">Uitgezette accounts</NavLink>
         </nav>
         <main className="content">
           <Routes>
             <Route path="/" element={<Accounts />} />
+            <Route path="/accounts-hidden" element={<Accounts hiddenMode />} />
             <Route path="/monitoring" element={<Monitoring />} />
             <Route path="/ai-builder" element={<AIAudienceBuilder />} />
             <Route path="/totals" element={<Totals />} />

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const ACCOUNTS_CACHE_KEY = 'knackpunkt_pulse_accounts_cache_v1'
 const ACCOUNTS_CACHE_TTL_MS = 10 * 60 * 1000
 const API = import.meta.env.VITE_API_URL
 
@@ -14,9 +13,15 @@ const STATUS_COLORS = {
   ACCOUNT_END_DATE_HOLD: '#f97316',
 }
 
-function readAccountsCache() {
+function getAccountsCacheKey(hiddenMode) {
+  return hiddenMode
+    ? 'knackpunkt_pulse_accounts_hidden_cache_v1'
+    : 'knackpunkt_pulse_accounts_cache_v1'
+}
+
+function readAccountsCache(hiddenMode) {
   try {
-    const raw = localStorage.getItem(ACCOUNTS_CACHE_KEY)
+    const raw = localStorage.getItem(getAccountsCacheKey(hiddenMode))
     if (!raw) return null
     const parsed = JSON.parse(raw)
     if (!parsed?.storedAt || !parsed?.payload) return null
@@ -26,10 +31,10 @@ function readAccountsCache() {
   }
 }
 
-function writeAccountsCache(payload) {
+function writeAccountsCache(hiddenMode, payload) {
   try {
     localStorage.setItem(
-      ACCOUNTS_CACHE_KEY,
+      getAccountsCacheKey(hiddenMode),
       JSON.stringify({ storedAt: Date.now(), payload })
     )
   } catch {
@@ -37,7 +42,7 @@ function writeAccountsCache(payload) {
   }
 }
 
-export default function Accounts() {
+export default function Accounts({ hiddenMode = false }) {
   const navigate = useNavigate()
   const [accounts, setAccounts] = useState([])
   const [campaignCountByAccount, setCampaignCountByAccount] = useState({})
@@ -65,6 +70,8 @@ export default function Accounts() {
     setTotals(payload?.totals || { campaigns: 0, spend: 0 })
   }
 
+  const hideModeLabel = hiddenMode ? 'uitgezette accounts' : 'accounts'
+
   const loadAccounts = async ({ background = false, runSync = false } = {}) => {
     if (!background) setLoading(true)
     setError('')
@@ -75,7 +82,7 @@ export default function Accounts() {
         if (!syncRes.ok) throw new Error(syncData.error || 'LinkedIn account sync mislukt.')
       }
 
-      const res = await fetch(`${API}/api/linkedin-ads/db/accounts-overview`)
+      const res = await fetch(`${API}/api/linkedin-ads/db/accounts-overview?hidden=${hiddenMode ? 'true' : 'false'}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Accounts laden mislukt.')
 
@@ -86,7 +93,7 @@ export default function Accounts() {
         totals: data.totals || { campaigns: 0, spend: 0 },
       }
       applyAccountsPayload(payload)
-      writeAccountsCache(payload)
+      writeAccountsCache(hiddenMode, payload)
       setCacheInfo({ source: 'live', storedAt: Date.now() })
     } catch (e) {
       if (background && accounts.length > 0) {
@@ -104,7 +111,7 @@ export default function Accounts() {
   }
 
   useEffect(() => {
-    const cached = readAccountsCache()
+    const cached = readAccountsCache(hiddenMode)
     const hasFreshCache = cached && (Date.now() - cached.storedAt <= ACCOUNTS_CACHE_TTL_MS)
 
     if (cached?.payload) {
@@ -114,7 +121,7 @@ export default function Accounts() {
     }
 
     loadAccounts({ background: Boolean(hasFreshCache || cached?.payload), runSync: true })
-  }, [])
+  }, [hiddenMode])
 
   const filtered = filter === 'all'
     ? accounts
@@ -163,7 +170,7 @@ export default function Accounts() {
     }
 
     applyAccountsPayload(data)
-    writeAccountsCache({
+    writeAccountsCache(hiddenMode, {
       accounts: data.accounts || [],
       campaignCountByAccount: data.campaignCountByAccount || {},
       spendByAccount: data.spendByAccount || {},
@@ -176,17 +183,44 @@ export default function Accounts() {
     loadAccounts({ background: true, runSync: false })
   }
 
+  const toggleVisibility = async (accountId, hidden) => {
+    setError('')
+    setSuccess('')
+    try {
+      const res = await fetch(`${API}/api/linkedin-ads/db/accounts/${accountId}/visibility`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hidden }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Account status wijzigen mislukt.')
+
+      const payload = {
+        accounts: data.accounts || [],
+        campaignCountByAccount: data.campaignCountByAccount || {},
+        spendByAccount: data.spendByAccount || {},
+        totals: data.totals || { campaigns: 0, spend: 0 },
+      }
+      applyAccountsPayload(payload)
+      writeAccountsCache(hiddenMode, payload)
+      setCacheInfo({ source: 'live', storedAt: Date.now() })
+      setSuccess(hidden ? 'Account uitgezet.' : 'Account weer aangezet.')
+    } catch (e) {
+      setError(e.message || 'Account status wijzigen mislukt.')
+    }
+  }
+
   if (loading) return <div className="loading">Laden...</div>
 
   const eur = (n) => `€${Number(n || 0).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   return (
     <div>
-<h1 className="page-title">Accounts <span className="count">{accounts.length}</span></h1>
+<h1 className="page-title">{hiddenMode ? 'Uitgezette accounts' : 'Accounts'} <span className="count">{accounts.length}</span></h1>
 
 <div className="accounts-overview">
   <div className="accounts-overview-item">
-    <span>Accounts</span>
+    <span>{hiddenMode ? 'Uitgezet' : 'Accounts'}</span>
     <strong>{accounts.length}</strong>
   </div>
   <div className="accounts-overview-item">
@@ -199,6 +233,7 @@ export default function Accounts() {
   </div>
 </div>
 
+{!hiddenMode && (
 <form className="account-form" onSubmit={handleSubmit}>
   <input name="id" value={form.id} onChange={handleChange} placeholder="Account ID" />
   <input name="name" value={form.name} onChange={handleChange} placeholder="Account naam" />
@@ -220,15 +255,17 @@ export default function Accounts() {
     {saving ? 'Opslaan...' : 'Account toevoegen'}
   </button>
 </form>
+)}
 
 {error && <div className="form-msg form-error">{error}</div>}
 {success && <div className="form-msg form-success">{success}</div>}
 {cacheInfo?.storedAt && (
   <div className="form-msg" style={{ opacity: 0.8 }}>
-    Data bron: {cacheInfo.source === 'cache' ? 'cache' : 'live'} · bijgewerkt: {new Date(cacheInfo.storedAt).toLocaleString('nl-NL')}
+    Data bron: {cacheInfo.source === 'cache' ? 'cache' : 'live'} · bijgewerkt: {new Date(cacheInfo.storedAt).toLocaleString('nl-NL')} · lijst: {hideModeLabel}
   </div>
 )}
 
+{!hiddenMode && (
 <div className="filter-bar">
   {[['all', 'Alle'], ['RUNNABLE', 'Actief'], ['BILLING_HOLD', 'Billing Hold'], ['STOPPED', 'Gestopt']].map(([key, label]) => (
     <button key={key} className={`filter-btn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>
@@ -236,6 +273,7 @@ export default function Accounts() {
     </button>
   ))}
 </div>
+)}
 
       <div className="table-wrapper">
         <table className="data-table">
@@ -249,6 +287,7 @@ export default function Accounts() {
               <th>Uitgegeven</th>
               <th>Valuta</th>
               <th>ID</th>
+              <th>Actie</th>
             </tr>
           </thead>
           <tbody>
@@ -278,6 +317,15 @@ export default function Accounts() {
                 <td>{eur(spendByAccount[String(a.id)] || 0)}</td>
                 <td>{a.currency}</td>
                 <td className="id-cell">{a.id}</td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className="row-action-btn"
+                    onClick={() => toggleVisibility(a.id, !hiddenMode)}
+                  >
+                    {hiddenMode ? 'Aanzetten' : 'Uitzetten'}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
