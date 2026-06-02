@@ -443,6 +443,82 @@ code {
   color: #7dd3fc;
   border-color: rgba(125, 211, 252, 0.28);
 }
+.alerts-feed {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.alert-feed-card {
+  padding: 18px 24px;
+  border-top: 1px solid rgba(255, 127, 58, 0.12);
+  background: rgba(16, 19, 26, 0.3);
+}
+.alert-feed-card-critical {
+  box-shadow: inset 3px 0 0 rgba(239, 68, 68, 0.7);
+}
+.alert-feed-card-warning {
+  box-shadow: inset 3px 0 0 rgba(245, 158, 11, 0.7);
+}
+.alert-feed-card-info {
+  box-shadow: inset 3px 0 0 rgba(125, 211, 252, 0.7);
+}
+.alert-feed-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.alert-feed-scope {
+  color: #8e9379;
+  font-size: 12px;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.alert-feed-title {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.2;
+  font-family: "Space Grotesk", Inter, sans-serif;
+}
+.alert-feed-detail {
+  margin: 0 0 14px;
+  color: #cfd4df;
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 90ch;
+}
+.alert-feed-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.alert-feed-meta-item {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.alert-feed-meta-item strong {
+  color: #8e9379;
+  font-size: 11px;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.alert-feed-meta-item span {
+  color: #fff;
+  font-size: 15px;
+}
+.alert-feed-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+.alert-feed-empty {
+  padding: 22px 24px;
+  color: #cfd4df;
+}
 
 .zenith-table-wrap {
   background: rgba(16, 19, 26, 0.85);
@@ -595,6 +671,10 @@ code {
   .zenith-value-tight { font-size: 28px; }
   .zenith-value-extra-tight { font-size: 24px; }
   .alerts-strip-header { flex-direction: column; }
+  .alert-feed-card { padding: 16px; }
+  .alert-feed-title { font-size: 18px; }
+  .alert-feed-detail,
+  .alert-feed-meta-item span { font-size: 14px; }
 }
 
 /* Campaign detail readability */

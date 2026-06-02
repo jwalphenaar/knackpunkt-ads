@@ -136,43 +136,48 @@ export default function Alerts() {
 
         <div className="zenith-table-wrap">
           <div className="zenith-table-title">Operationele signalen</div>
-          <table className="zenith-table">
-            <thead>
-              <tr>
-                <th>Severity</th>
-                <th>Scope</th>
-                <th>Account</th>
-                <th>Campagne</th>
-                <th>Alert</th>
-                <th>Detail</th>
-                <th>Actie</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAlerts.map((alert) => (
-                <tr key={alert.id}>
-                  <td><span className={`alert-chip alert-chip-${alert.severity}`}>{alert.severity}</span></td>
-                  <td>{alert.scope}</td>
-                  <td>{alert.account_name}</td>
-                  <td>{alert.campaign_name || '—'}</td>
-                  <td>{alert.title}</td>
-                  <td>{alert.detail}</td>
-                  <td>
-                    {alert.campaign_id ? (
-                      <button className="zenith-action-btn" onClick={() => navigate(`/campaigns/${alert.campaign_id}`)} aria-label="Open campagne">↗</button>
-                    ) : (
-                      <button className="zenith-action-btn" onClick={() => navigate(`/accounts/${alert.account_id}`)} aria-label="Open account">↗</button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {filteredAlerts.length === 0 && (
-                <tr>
-                  <td colSpan={7}>Geen alerts voor deze filter.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div className="alerts-feed">
+            {filteredAlerts.map((alert) => (
+              <article key={alert.id} className={`alert-feed-card alert-feed-card-${alert.severity}`}>
+                <div className="alert-feed-top">
+                  <span className={`alert-chip alert-chip-${alert.severity}`}>{alert.severity}</span>
+                  <span className="alert-feed-scope">{alert.scope === 'account' ? 'Accountniveau' : 'Campagneniveau'}</span>
+                </div>
+
+                <h3 className="alert-feed-title">{alert.title}</h3>
+                <p className="alert-feed-detail">{alert.detail}</p>
+
+                <div className="alert-feed-meta">
+                  <span className="alert-feed-meta-item">
+                    <strong>Account</strong>
+                    <span>{alert.account_name}</span>
+                  </span>
+                  {alert.campaign_name && (
+                    <span className="alert-feed-meta-item">
+                      <strong>Campagne</strong>
+                      <span>{alert.campaign_name}</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="alert-feed-actions">
+                  {alert.campaign_id ? (
+                    <button className="targeting-link-btn" onClick={() => navigate(`/campaigns/${alert.campaign_id}`)}>
+                      Open campagne
+                    </button>
+                  ) : (
+                    <button className="targeting-link-btn" onClick={() => navigate(`/accounts/${alert.account_id}`)}>
+                      Open account
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+
+            {filteredAlerts.length === 0 && (
+              <div className="alert-feed-empty">Geen alerts voor deze filter.</div>
+            )}
+          </div>
         </div>
       </div>
     </div>
