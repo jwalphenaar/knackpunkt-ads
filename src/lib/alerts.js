@@ -47,6 +47,37 @@ function getRecentWindow(rows, days, now = new Date()) {
   })
 }
 
+export const ALERT_CATEGORY_META = {
+  all: { label: 'Alle types' },
+  billing: { label: 'Billing issues' },
+  delivery: { label: 'Delivery drop' },
+  end_date: { label: 'Einddatum' },
+  budget: { label: 'Budget' },
+  status: { label: 'Status' },
+}
+
+function getAlertCategory(code) {
+  switch (code) {
+    case 'account_billing_hold':
+      return 'billing'
+    case 'campaign_no_recent_delivery':
+    case 'campaign_impression_drop':
+    case 'campaign_click_drop':
+      return 'delivery'
+    case 'account_end_date_hold':
+    case 'campaign_end_date_passed':
+    case 'campaign_end_date_near':
+      return 'end_date'
+    case 'campaign_budget_exhausted':
+    case 'campaign_budget_nearly_exhausted':
+      return 'budget'
+    case 'campaign_completed_with_recent_spend':
+      return 'status'
+    default:
+      return 'status'
+  }
+}
+
 function makeAlert({
   scope,
   severity,
@@ -62,6 +93,8 @@ function makeAlert({
     scope,
     severity,
     code,
+    category: getAlertCategory(code),
+    category_label: ALERT_CATEGORY_META[getAlertCategory(code)]?.label || 'Status',
     title,
     detail,
     metric,

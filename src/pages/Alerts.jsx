@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { buildAlerts, summarizeAlerts } from '../lib/alerts'
+import { ALERT_CATEGORY_META, buildAlerts, summarizeAlerts } from '../lib/alerts'
 
 const API = import.meta.env.VITE_API_URL
 const ALERT_LOOKBACK_DAYS = 21
@@ -26,6 +26,7 @@ export default function Alerts() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [severityFilter, setSeverityFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [alerts, setAlerts] = useState([])
 
   useEffect(() => {
@@ -99,11 +100,26 @@ export default function Alerts() {
   }, [])
 
   const filteredAlerts = useMemo(() => {
-    if (severityFilter === 'all') return alerts
-    return alerts.filter((alert) => alert.severity === severityFilter)
-  }, [alerts, severityFilter])
+    return alerts.filter((alert) => {
+      const severityOk = severityFilter === 'all' || alert.severity === severityFilter
+      const categoryOk = categoryFilter === 'all' || alert.category === categoryFilter
+      return severityOk && categoryOk
+    })
+  }, [alerts, severityFilter, categoryFilter])
 
   const summary = useMemo(() => summarizeAlerts(alerts), [alerts])
+  const categoryCounts = useMemo(() => {
+    const counts = Object.keys(ALERT_CATEGORY_META).reduce((acc, key) => {
+      acc[key] = 0
+      return acc
+    }, {})
+    counts.all = alerts.length
+    for (const alert of alerts) {
+      if (counts[alert.category] == null) counts[alert.category] = 0
+      counts[alert.category] += 1
+    }
+    return counts
+  }, [alerts])
 
   if (loading) return <div className="loading">Alerts laden...</div>
 
@@ -130,6 +146,20 @@ export default function Alerts() {
           <div className="zenith-subtle">Analytics-signalen op basis van de laatste {ALERT_LOOKBACK_DAYS} dagen.</div>
         </div>
 
+        <div className="account-filters" style={{ marginBottom: 18 }}>
+          {Object.entries(ALERT_CATEGORY_META).map(([key, meta]) => (
+            <button
+              key={key}
+              type="button"
+              className={`filter-pill ${categoryFilter === key ? 'active' : ''}`}
+              onClick={() => setCategoryFilter(key)}
+            >
+              {meta.label}
+              <span>{fmt(categoryCounts[key] || 0)}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="zenith-kpi-grid" style={{ marginBottom: 22 }}>
           <div className="zenith-card"><div className="zenith-label">Open alerts</div><div className="zenith-value zenith-value-compact">{fmt(summary.total)}</div></div>
           <div className="zenith-card"><div className="zenith-label">Critical</div><div className="zenith-value zenith-value-compact" style={{ color: '#f87171' }}>{fmt(summary.critical)}</div></div>
@@ -145,6 +175,7 @@ export default function Alerts() {
                 <div className="alert-feed-top">
                   <span className={`alert-chip alert-chip-${alert.severity}`}>{alert.severity}</span>
                   <span className="alert-feed-scope">{alert.scope === 'account' ? 'Accountniveau' : 'Campagneniveau'}</span>
+                  <span className="alert-feed-category">{alert.category_label}</span>
                 </div>
 
                 <h3 className="alert-feed-title">{alert.title}</h3>
