@@ -400,13 +400,14 @@ code {
 .zenith-action-btn:hover { box-shadow: 0 0 10px rgba(125, 244, 255, 0.45); }
 
 .account-registry-table {
-  min-width: 1120px;
+  min-width: 980px;
   table-layout: fixed;
 }
 
 .account-registry-table th,
 .account-registry-table td {
   white-space: nowrap;
+  vertical-align: top;
 }
 
 .account-registry-table td:first-child,
@@ -415,8 +416,12 @@ code {
 }
 
 .account-registry-table .zenith-campaign-name {
-  font-size: clamp(26px, 2.2vw, 52px);
-  line-height: 1.08;
+  font-size: clamp(18px, 1.7vw, 32px);
+  line-height: 1.12;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 /* App-wide dark + orange theme for Accounts/Campaigns/Campaign detail */
