@@ -334,7 +334,7 @@ code {
 .zenith-value {
   font-family: "JetBrains Mono", monospace;
   color: #fff;
-  font-size: 42px;
+  font-size: clamp(22px, 1.9vw, 34px);
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0;
@@ -344,7 +344,8 @@ code {
   overflow: hidden;
   text-overflow: clip;
 }
-.zenith-value-compact { font-size: clamp(24px, 1.8vw, 40px); }
+.zenith-card-spend .zenith-value { font-size: clamp(32px, 2.8vw, 48px); }
+.zenith-value-compact { font-size: clamp(22px, 1.65vw, 34px); }
 .zenith-value-tight { font-size: clamp(22px, 1.45vw, 32px); }
 .zenith-value-extra-tight { font-size: clamp(18px, 1.15vw, 26px); }
 .zenith-accent { color: #ff9f66; }
@@ -469,8 +470,9 @@ code {
 @media (max-width: 1400px) {
   .zenith-account { font-size: 32px; }
   .zenith-title { font-size: 40px; }
-  .zenith-value { font-size: 34px; }
-  .zenith-value-compact { font-size: clamp(22px, 1.6vw, 34px); }
+  .zenith-value { font-size: clamp(22px, 1.7vw, 30px); }
+  .zenith-card-spend .zenith-value { font-size: clamp(30px, 2.5vw, 42px); }
+  .zenith-value-compact { font-size: clamp(20px, 1.45vw, 30px); }
   .zenith-value-tight { font-size: clamp(20px, 1.3vw, 28px); }
   .zenith-value-extra-tight { font-size: clamp(18px, 1.05vw, 24px); }
 }
@@ -480,6 +482,9 @@ code {
   .zenith-kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .zenith-card, .zenith-card-spend { grid-column: span 3; }
   .zenith-campaign-name { font-size: 26px; }
+  .zenith-value,
+  .zenith-value-compact { font-size: clamp(24px, 3.2vw, 36px); }
+  .zenith-card-spend .zenith-value { font-size: clamp(32px, 4vw, 44px); }
 }
 @media (max-width: 760px) {
   .zenith-kpi-grid { grid-template-columns: 1fr; }
@@ -488,6 +493,7 @@ code {
   .zenith-account { font-size: 26px; }
   .zenith-table th, .zenith-table td { padding: 12px; }
   .zenith-campaign-name { font-size: 20px; }
+  .zenith-value,
   .zenith-value-compact { font-size: 32px; }
   .zenith-value-tight { font-size: 28px; }
   .zenith-value-extra-tight { font-size: 24px; }
