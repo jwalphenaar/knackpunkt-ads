@@ -101,7 +101,8 @@ function buildAccountLevelAlerts(account) {
   return alerts
 }
 
-function buildCampaignLevelAlerts(account, campaign, analyticsRows, now = new Date()) {
+function buildCampaignLevelAlerts(account, campaign, analyticsRows, now = new Date(), options = {}) {
+  const { includeBudgetAlerts = true } = options
   const alerts = []
   const recent3 = getRecentWindow(analyticsRows, 3, now)
   const recent7 = getRecentWindow(analyticsRows, 7, now)
@@ -164,28 +165,30 @@ function buildCampaignLevelAlerts(account, campaign, analyticsRows, now = new Da
     }))
   }
 
-  if (totalBudget > 0 && totalSpend >= totalBudget) {
-    alerts.push(makeAlert({
-      scope: 'campaign',
-      severity: 'critical',
-      code: 'campaign_budget_exhausted',
-      title: 'Campagnebudget bereikt of overschreden',
-      detail: `Spend ${totalSpend.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} op budget ${totalBudget.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
-      account,
-      campaign,
-      metric: 'budget',
-    }))
-  } else if (totalBudget > 0 && totalSpend >= totalBudget * 0.9) {
-    alerts.push(makeAlert({
-      scope: 'campaign',
-      severity: 'warning',
-      code: 'campaign_budget_nearly_exhausted',
-      title: 'Campagnebudget bijna op',
-      detail: `Spend zit op ${Math.round((totalSpend / totalBudget) * 100)}% van het totaalbudget.`,
-      account,
-      campaign,
-      metric: 'budget',
-    }))
+  if (includeBudgetAlerts) {
+    if (totalBudget > 0 && totalSpend >= totalBudget) {
+      alerts.push(makeAlert({
+        scope: 'campaign',
+        severity: 'critical',
+        code: 'campaign_budget_exhausted',
+        title: 'Campagnebudget bereikt of overschreden',
+        detail: `Spend ${totalSpend.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} op budget ${totalBudget.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
+        account,
+        campaign,
+        metric: 'budget',
+      }))
+    } else if (totalBudget > 0 && totalSpend >= totalBudget * 0.9) {
+      alerts.push(makeAlert({
+        scope: 'campaign',
+        severity: 'warning',
+        code: 'campaign_budget_nearly_exhausted',
+        title: 'Campagnebudget bijna op',
+        detail: `Spend zit op ${Math.round((totalSpend / totalBudget) * 100)}% van het totaalbudget.`,
+        account,
+        campaign,
+        metric: 'budget',
+      }))
+    }
   }
 
   if (runScheduleEnd) {
@@ -240,7 +243,7 @@ function buildCampaignLevelAlerts(account, campaign, analyticsRows, now = new Da
   return alerts
 }
 
-export function buildAlerts({ accounts = [], campaigns = [], analytics = [], accountId = null, now = new Date() }) {
+export function buildAlerts({ accounts = [], campaigns = [], analytics = [], accountId = null, now = new Date(), includeBudgetAlerts = true }) {
   const alerts = []
   const campaignAnalytics = getCampaignAnalyticsById(analytics)
   const accountMap = new Map(accounts.map((account) => [String(account.id), account]))
@@ -261,7 +264,7 @@ export function buildAlerts({ accounts = [], campaigns = [], analytics = [], acc
     const account = accountMap.get(String(campaign.account_id))
     if (!account) continue
     const rows = campaignAnalytics.get(String(campaign.id)) || []
-    alerts.push(...buildCampaignLevelAlerts(account, campaign, rows, now))
+    alerts.push(...buildCampaignLevelAlerts(account, campaign, rows, now, { includeBudgetAlerts }))
   }
 
   const severityRank = { critical: 0, warning: 1, info: 2 }

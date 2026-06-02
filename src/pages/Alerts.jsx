@@ -4,8 +4,15 @@ import { supabase } from '../lib/supabase'
 import { buildAlerts, summarizeAlerts } from '../lib/alerts'
 
 const API = import.meta.env.VITE_API_URL
+const ALERT_LOOKBACK_DAYS = 21
 
 const fmt = (n) => Number(n || 0).toLocaleString('nl-NL')
+
+function getLookbackStartDate(days) {
+  const date = new Date()
+  date.setDate(date.getDate() - days)
+  return date.toISOString().slice(0, 10)
+}
 
 async function fetchVisibleAccounts() {
   const res = await fetch(`${API}/api/linkedin-ads/db/accounts-overview?hidden=false`)
@@ -48,6 +55,7 @@ export default function Alerts() {
         }
 
         let analytics = []
+        const fromDate = getLookbackStartDate(ALERT_LOOKBACK_DAYS)
         for (let i = 0; i < visibleAccountIds.length; i += 25) {
           const chunk = visibleAccountIds.slice(i, i + 25)
           let from = 0
@@ -58,6 +66,7 @@ export default function Alerts() {
               .from('linkedin_ad_analytics')
               .select('campaign_id, account_id, date_start, impressions, clicks, cost_in_local_currency')
               .in('account_id', chunk)
+              .gte('date_start', fromDate)
               .order('date_start', { ascending: false })
               .range(from, from + pageSize - 1)
 
@@ -69,7 +78,12 @@ export default function Alerts() {
           }
         }
 
-        setAlerts(buildAlerts({ accounts, campaigns, analytics }))
+        setAlerts(buildAlerts({
+          accounts,
+          campaigns,
+          analytics,
+          includeBudgetAlerts: false,
+        }))
       } catch (e) {
         setError(e.message || 'Alerts laden mislukt.')
         setAlerts([])
@@ -110,6 +124,7 @@ export default function Alerts() {
         <div className="zenith-header">
           <div className="zenith-eyebrow">Knackpunkt Pulse</div>
           <h1 className="zenith-title">Campaign Alert Center</h1>
+          <div className="zenith-subtle">Analytics-signalen op basis van de laatste {ALERT_LOOKBACK_DAYS} dagen.</div>
         </div>
 
         <div className="zenith-kpi-grid" style={{ marginBottom: 22 }}>
