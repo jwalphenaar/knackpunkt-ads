@@ -416,7 +416,7 @@ code {
 }
 
 .account-registry-table .zenith-campaign-name {
-  font-size: clamp(18px, 1.7vw, 32px);
+  font-size: clamp(17px, 1.55vw, 28px);
   line-height: 1.12;
   max-width: 100%;
   overflow-wrap: anywhere;

@@ -340,12 +340,12 @@ export default function AccountDetail() {
           <div className="zenith-table-title">Campaign Registry</div>
           <table className="zenith-table account-registry-table">
             <colgroup>
-              <col style={{ width: '56%' }} />
+              <col style={{ width: '52%' }} />
               <col style={{ width: '12%' }} />
               <col style={{ width: '12%' }} />
               <col style={{ width: '8%' }} />
-              <col style={{ width: '7%' }} />
-              <col style={{ width: '5%' }} />
+              <col style={{ width: '6%' }} />
+              <col style={{ width: '10%' }} />
             </colgroup>
             <thead>
               <tr>
