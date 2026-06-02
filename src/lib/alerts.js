@@ -125,7 +125,6 @@ function buildCampaignLevelAlerts(account, campaign, analyticsRows, now = new Da
 
   const totalBudget = Number(campaign?.total_budget_amount || 0)
   const runScheduleEnd = parseDate(campaign?.run_schedule_end)
-  const locale = [campaign?.locale_language, campaign?.locale_country].filter(Boolean).join('_')
 
   if (isActiveCampaignStatus(campaign?.status) && recent3Impressions === 0 && recent3Spend === 0) {
     alerts.push(makeAlert({
@@ -223,18 +222,6 @@ function buildCampaignLevelAlerts(account, campaign, analyticsRows, now = new Da
       code: 'campaign_completed_with_recent_spend',
       title: 'Campagne staat op completed maar had recente spend',
       detail: 'Controleer of de status en delivery nog logisch synchroon lopen.',
-      account,
-      campaign,
-    }))
-  }
-
-  if (locale && locale !== 'EN_US') {
-    alerts.push(makeAlert({
-      scope: 'campaign',
-      severity: 'info',
-      code: 'campaign_non_standard_locale',
-      title: 'Campagne gebruikt niet-standaard locale',
-      detail: `Locale: ${locale}.`,
       account,
       campaign,
     }))
